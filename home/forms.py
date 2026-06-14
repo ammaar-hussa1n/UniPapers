@@ -42,11 +42,9 @@ class AcademicUploadForm(forms.Form):
     term = forms.ChoiceField(choices=TERM_CHOICES, required=True)
     
     # 2. Changed university to pull directly from your Uni database table
-    university = forms.ModelChoiceField(
-        queryset=Uni.objects.all(),
-        to_field_name="uni_name",
-        empty_label="Select University",
-        required=True
+    university = forms.ChoiceField(
+        choices=[],
+        required=False
     )
     
     # 3. Changed program to start blank and populate dynamically
@@ -63,10 +61,8 @@ class SearchValidationForm(forms.Form):
     q = forms.CharField(max_length=100, required=False, strip=True)
     
     # Restored Uni reference (Fixed NameError)
-    university = forms.ModelChoiceField(
-        queryset=Uni.objects.all(),
-        to_field_name="uni_name",
-        empty_label="All Universities",
+    university = forms.ChoiceField(
+        choices=[],
         required=False
     )
     semester = forms.ChoiceField(choices=[('', 'All Semesters')] + SEMESTER_CHOICES, required=False)
@@ -83,6 +79,8 @@ class SearchValidationForm(forms.Form):
         # Dynamically builds dropdown choices from unique entries in your database
         distinct_programs = Course.objects.values_list('program', flat=True).distinct().order_by('program')
         self.fields['program'].choices = [('', 'All Programs')] + [(p, p) for p in distinct_programs if p]
+        distinct_unis = Uni.objects.values_list('uni_name', flat=True).distinct()
+        self.fields['university'].choices = [('', 'All Universities')] + [(u, u) for u in distinct_unis]
 
     page = forms.IntegerField(required=False, min_value=1, max_value=999, initial=1)
     def clean_page(self):

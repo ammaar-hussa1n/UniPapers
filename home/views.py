@@ -633,7 +633,8 @@ def upload(request):
             messages.error(request, f"Form validation failed : {first_error}")
             return redirect('upload')
 
-        university = _normalize_university_input(form.cleaned_data.get('university'))
+        university_obj = form.cleaned_data.get('university')
+        university = university_obj.uni_name if university_obj else None
         year = _clean_text_input(form.cleaned_data.get('year'))
         title = _clean_text_input(form.cleaned_data.get('title'))
         semester = _clean_text_input(form.cleaned_data.get('semester'))
