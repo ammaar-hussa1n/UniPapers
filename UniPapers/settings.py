@@ -218,6 +218,10 @@ STATICFILES_STORAGE = (
     'whitenoise.storage.CompressedManifestStaticFilesStorage'
 )
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://unipapers-production.up.railway.app",
+]
+
 if DEBUG:
     # 🛠️ Local Development: Uses your computer's built-in memory so you don't need to run Redis locally
     CACHES = {
