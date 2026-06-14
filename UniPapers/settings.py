@@ -164,7 +164,7 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
+    MEDIA_URL = '/media/' ####
 else:
     # Local development uses environment variable if available, fallback to local DB
     DATABASES = {
@@ -230,22 +230,11 @@ SECURE_PROXY_SSL_HEADER = (
     'https',
 )
 
-if DEBUG:
-    # 🛠️ Local Development: Uses your computer's built-in memory so you don't need to run Redis locally
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        }
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
-else:
-    # 🚀 Production (Render): Uses Render's Redis instance to sync rate-limiting securely
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            # Render automatically provides REDIS_URL when you link a Redis instance
-            'LOCATION': os.environ.get('REDIS_URL'),
-        }
-    }
+}
 RATELIMIT_USE_CACHE = 'default'
 
 # Secure authentication rate limits handled natively by django-allauth
