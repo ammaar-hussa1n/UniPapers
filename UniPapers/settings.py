@@ -30,7 +30,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'unsafe-dev-key')
 # Checks if running live on Vercel. If not, it defaults to TRUE for smooth local testing!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,.onrender.com').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,.railway.app').split(',')
 
 
 # Application definition
