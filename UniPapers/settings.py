@@ -30,7 +30,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'unsafe-dev-key')
 # Checks if running live on Vercel. If not, it defaults to TRUE for smooth local testing!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1, unipapers-production.up.railway.app').split(',')
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "unipapers-production.up.railway.app",
+]
 
 
 # Application definition
@@ -221,6 +225,10 @@ STATICFILES_STORAGE = (
 CSRF_TRUSTED_ORIGINS = [
     "https://unipapers-production.up.railway.app",
 ]
+SECURE_PROXY_SSL_HEADER = (
+    'HTTP_X_FORWARDED_PROTO',
+    'https',
+)
 
 if DEBUG:
     # 🛠️ Local Development: Uses your computer's built-in memory so you don't need to run Redis locally
