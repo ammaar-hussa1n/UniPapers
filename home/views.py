@@ -363,7 +363,8 @@ def search(request):
             return redirect('home')
 
     search_text = _clean_text_input(form.cleaned_data.get('q'))
-    university = _normalize_university_input(form.cleaned_data.get('university'))
+    university_obj = form.cleaned_data.get('university')
+    university = university_obj.uni_name if university_obj else None
     semester = _clean_text_input(form.cleaned_data.get('semester'))
     program = _clean_text_input(form.cleaned_data.get('program'))
     year = _clean_text_input(form.cleaned_data.get('year'))
@@ -371,7 +372,7 @@ def search(request):
     course_name = _clean_text_input(form.cleaned_data.get('course_name'))
     status = _clean_text_input(form.cleaned_data.get('status'))
     
-    normalized_university = _normalize_university(university)
+    normalized_university = _normalize_university(university) if university else None
     available_courses = _build_course_filters(normalized_university, semester, program)
     is_admin = request.user.is_superuser
 
