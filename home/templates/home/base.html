@@ -1,0 +1,666 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniPapers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+          rel="stylesheet" 
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" 
+          crossorigin="anonymous">
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Inter', sans-serif;
+        }
+
+        .navbar {
+            width: 100%;
+            height: 72px;
+            min-height: 72px;
+            background: white;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 0 40px;
+            border-bottom: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }   
+
+        .nav-left{
+            display:flex;
+            align-items:center;
+            gap:30px;
+            justify-self:start;
+        }
+
+        .nav-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 10px 0;
+        }
+
+        .logo{
+            font-size:34px;
+            font-weight:800;
+            letter-spacing:2px;
+            cursor:pointer;
+            color:inherit;
+            text-decoration:none;
+            display:block;
+        }
+
+        .logo:visited,
+        .logo:hover,
+        .logo:focus{
+            color:inherit;
+            text-decoration:none;
+        }
+
+        .nav-right{
+            display:flex;
+            align-items:center;
+            gap:25px;
+            justify-self:end;
+        }
+
+        .nav-item{
+            cursor:pointer;
+            font-size:15px;
+            position:relative;
+        }
+
+        .download-btn{
+            background:#168a45;
+            color:white;
+            border:none;
+            padding:12px 20px;
+            border-radius:7px;
+            font-weight:600;
+            cursor:pointer;
+            text-decoration:none;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .dropdown{
+            position:relative;
+            display:flex;
+            align-items:center;
+            height:100%;
+        }
+
+        .dropdown::after{
+            content:'';
+            position:absolute;
+            left:0;
+            right:0;
+            top:100%;
+            height:12px;
+        }
+
+        .dropdown-menu{
+            position:absolute;
+            top:calc(100% - 1px);
+            left:50%;
+            transform:translateX(-50%);
+            width:420px;
+            background:white;
+            border-radius:10px;
+            box-shadow:0 5px 25px rgba(0,0,0,0.15);
+            padding:18px;
+            display:none;
+            z-index:1001;
+        }
+
+        .dropdown-form{
+            display:flex;
+            flex-direction:column;
+            gap:16px;
+        }
+
+        .dropdown:hover .dropdown-menu,
+        .dropdown:focus-within .dropdown-menu{
+            display:block;
+        }
+
+        .dropdown-menu h4{
+            margin-bottom:12px;
+            font-size:15px;
+        }
+
+        .dropdown-grid{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:18px;
+        }
+
+        .dropdown-section{
+            padding:6px 0;
+        }
+
+        .dropdown-section + .dropdown-section{
+            border-left:1px solid #eee;
+            padding-left:18px;
+        }
+
+        .dropdown-actions{
+            display:flex;
+            justify-content:flex-end;
+        }
+
+        .dropdown-search-btn{
+            border:none;
+            background:#168a45;
+            color:white;
+            padding:8px 14px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:700;
+            letter-spacing:0.08em;
+            cursor:pointer;
+        }
+
+        .dropdown-button{
+            border:none;
+            background:none;
+            font-size:15px;
+            cursor:pointer;
+            padding:0;
+            color:inherit;
+            display:flex;
+            align-items:center;
+            gap:8px;
+            height:100%;
+            line-height:1;
+        }
+
+        .dropdown-caret{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            width:18px;
+            height:18px;
+            border-radius:999px;
+            border:1px solid #cfd6dc;
+            color:#6b7280;
+            font-size:11px;
+            flex-shrink:0;
+        }
+
+        .dropdown-option{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin:12px 0;
+            cursor:pointer;
+            white-space:nowrap;
+            user-select:none;
+        }
+
+        .dropdown-option input, 
+        .filter-opt input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: auto;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            z-index: 2;
+        }
+
+        .circle{
+            width:18px;
+            height:18px;
+            border:2px solid #444;
+            border-radius:50%;
+            position:relative;
+            flex-shrink:0;
+        }
+
+        .dropdown-option input:checked + .circle::after{
+            content:'';
+            width:8px;
+            height:8px;
+            background:#111;
+            border-radius:50%;
+            position:absolute;
+            top:50%;
+            left:50%;
+            transform:translate(-50%, -50%);
+        }
+
+        .filter-opt input[type="radio"]:checked + .dot::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #168a45;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }   
+
+        .search-container {
+            position: relative;
+            width: 350px;
+            z-index: 2000;
+        }
+
+        .search-input-group {
+            display: flex;
+            align-items: center;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 0 12px;
+            transition: 0.2s;
+        }
+
+        .search-input-group:focus-within {
+            background: #ffffff;
+            border-color: #168a45;
+            box-shadow: 0 0 0 3px rgba(22, 138, 69, 0.1);
+        }
+
+        .search-control {
+            border: none;
+            background: transparent;
+            height: 40px;
+            width: 100%;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .search-submit {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+        }
+
+        .search-filters-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 15px;
+            display: none;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .search-container:focus-within .search-filters-dropdown {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .filter-col h6 {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .semester-select {
+            width: 100%;
+            padding: 5px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 13px;
+        }
+
+        .filter-opt {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .filter-opt input[type="radio"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            margin: 0;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .filter-opt .dot {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #444;
+            border-radius: 50%;
+            position: relative;
+            flex-shrink: 0;
+            display: inline-block;
+            z-index: 1;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        main {
+            flex: 1 0 auto;
+        }
+
+        .footer-navbar {
+            width: 100%;
+            height: 72px;
+            background: white;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 0 40px;
+            border-top: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+
+        .footer-about-link {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .footer-about-link:focus {
+            color: #168a45;
+            text-decoration: none;
+        }
+
+        .footer-contact {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .contact-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #94a3b8;
+        }
+
+        .contact-email {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .contact-email:hover {
+            color: #168a45;
+        }
+
+        .footer-link {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .footer-link:hover {
+            background: #e6f7ed;
+            color: #168a45;
+        }
+
+        .copyright-text {
+            font-size: 13px;
+            color: #334155;
+        }
+
+        .copyright-text a {
+            color: inherit;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .copyright-text a:hover {
+            color: #168a45;
+        }
+
+        .profile-icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+
+        .profile-icon-btn:hover {
+            border-color: #168a45;
+        }
+
+        .profile-initial {
+            font-weight: 700;
+            color: #168a45;
+            font-size: 16px;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            gap: 12px;
+        }
+
+        .nav-logo {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .brand-text {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #004d00;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 480px) {
+            .nav-logo {
+                height: 30px;
+            }
+            .brand-text {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-left">
+        <a href="{% url 'home' %}" class="navbar-brand">
+            <img src="{% static 'logo.png' %}" alt="Logo" class="nav-logo">
+            <span class="brand-text">UNI PAPERS</span>
+        </a>
+    </div>
+
+    <div class="nav-center">
+        {% if request.resolver_match.url_name != 'privacy_policy' and request.resolver_match.url_name != 'terms_and_conditions' and request.resolver_match.url_name != 'about' and request.resolver_match.url_name != 'upload' and request.resolver_match.url_name != 'account_login' %}
+        <div class="search-container">
+            <form method="get" action="{% url 'search' %}" class="search-form">
+                <div class="search-input-group">
+                    <input type="text" name="q" class="search-control" placeholder="Search papers..." value="{{ request.GET.q }}" autocomplete="off">
+                    <button type="submit" class="search-submit">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
+                </div>
+
+                <div class="search-filters-dropdown">
+                    <div class="filter-grid">
+                        <div class="filter-col">
+                            <h6>University</h6>
+                            <label class="filter-opt">
+                                <input type="radio" name="university" value="" {% if not request.GET.university or request.GET.university == "" %}checked{% endif %}>
+                                <span class="dot"></span> All Universities
+                            </label>
+                            <label class="filter-opt">
+                                <input type="radio" name="university" value="Sir Syed University" {% if request.GET.university == "Sir Syed University" %}checked{% endif %}>
+                                <span class="dot"></span> SSUET
+                            </label>
+                            <label class="filter-opt">
+                                <input type="radio" name="university" value="FAST University" {% if request.GET.university == "FAST University" %}checked{% endif %}>
+                                <span class="dot"></span> FAST
+                            </label>
+                        </div>
+                        <div class="filter-col">
+                            <h6>Semester</h6>
+                            <select name="semester" class="semester-select">
+                                <option value="">All Semesters</option>
+                                <option value="1st Semester" {% if request.GET.semester == "1st Semester" %}selected{% endif %}>1st Semester</option>
+                                <option value="2nd Semester" {% if request.GET.semester == "2nd Semester" %}selected{% endif %}>2nd Semester</option>
+                                <option value="3rd Semester" {% if request.GET.semester == "3rd Semester" %}selected{% endif %}>3rd Semester</option>
+                                <option value="4th Semester" {% if request.GET.semester == "4th Semester" %}selected{% endif %}>4th Semester</option>
+                                <option value="5th Semester" {% if request.GET.semester == "5th Semester" %}selected{% endif %}>5th Semester</option>
+                                <option value="6th Semester" {% if request.GET.semester == "6th Semester" %}selected{% endif %}>6th Semester</option>
+                                <option value="7th Semester" {% if request.GET.semester == "7th Semester" %}selected{% endif %}>7th Semester</option>
+                                <option value="8th Semester" {% if request.GET.semester == "8th Semester" %}selected{% endif %}>8th Semester</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="nav-right">
+        <a class="nav-item download-btn" href="{% url 'upload' %}">
+            Upload
+        </a>
+
+        {% if request.user.is_authenticated %}
+            <form method="post" action="{% url 'account_logout' %}" style="margin:0;">
+                {% csrf_token %}
+                <button class="nav-item download-btn" type="submit">
+                    Logout
+                </button>
+            </form>
+            <a href="{% url 'profile' %}" class="profile-icon-btn">
+                {% if request.user.profile_pix %} 
+                    <img src="{{ request.user.profile_pix.url }}" alt="Profile">
+                {% else %}
+                    <div class="profile-initial">
+                        {% if request.user.username %}
+                            {{ request.user.username|slice:":1"|upper }}
+                        {% else %}
+                            {{ request.user.email|slice:":1"|upper }}
+                        {% endif %}
+                    </div>
+                {% endif %} 
+            </a>
+        {% else %}
+            <a class="nav-item download-btn" href="{% url 'account_login' %}">
+                Login
+            </a>
+        {% endif %}
+    </div>
+</nav>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer-navbar">
+    <div class="nav-left">
+        <div class="footer-contact">
+            <span class="contact-label">Contact :</span>
+            <a href="mailto:unipapers.contact@gmail.com" class="contact-email">unipapers.contact@gmail.com</a>
+        </div>
+    </div>
+
+    {% if request.resolver_match.url_name == 'about' %}
+        <div class="nav-center">
+            <a class="footer-link" href="{% url 'home' %}">Home</a>
+        </div>
+    {% else %}
+        <div class="nav-center">
+            <a class="footer-link" href="{% url 'about' %}">About</a>
+        </div>
+    {% endif %}
+
+    <div class="nav-right">
+        <span class="contact-label">© 2026 UniPapers</span>
+        <span class="copyright-text">By using the website you agree to our <a href="{% url 'terms_and_conditions' %}">Terms & Conditions</a> and <a href="{% url 'privacy_policy' %}">Privacy Policy</a></span>
+    </div>
+</footer>
+
+{% if request.resolver_match.url_name != 'account_login' %}
+    {% if messages %}
+        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+            {% for message in messages %}
+            <div class="toast align-items-center text-bg-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}primary{% endif %} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+                <div class="d-flex">
+                    <div class="toast-body">{{ message }}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
+            crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.toast:not(#deleteConfirmToast)').forEach(function (toastElement) {
+                const toast = bootstrap.Toast.getOrCreateInstance(toastElement);
+                toast.show();
+            });
+        });
+    </script>
+{% endif %}
+</body>
+</html>

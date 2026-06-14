@@ -1,0 +1,848 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+<style>
+    .upload-page {
+        min-height: calc(100vh - 72px);
+        padding: 42px 24px 56px;
+        background: linear-gradient(180deg, #f7f9fc 0%, #eef4ef 100%);
+    }
+
+    .upload-shell {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+        display: grid;
+        gap: 24px;
+    }
+
+    .upload-hero {
+        padding: 6px 4px 0;
+    }
+
+    .upload-eyebrow {
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #168a45;
+        margin-bottom: 10px;
+    }
+
+    .upload-hero h1 {
+        max-width: 760px;
+        font-size: clamp(30px, 4vw, 48px);
+        line-height: 1.05;
+        color: #17324d;
+        margin-bottom: 10px;
+    }
+
+    .upload-subtitle {
+        max-width: 760px;
+        color: #5b6773;
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .upload-form {
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(22, 138, 69, 0.08);
+        box-shadow: 0 18px 50px rgba(21, 33, 44, 0.08);
+        border-radius: 24px;
+        padding: 28px;
+        display: grid;
+        gap: 22px;
+    }
+
+    .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .field {
+        display: grid;
+        gap: 10px;
+    }
+
+    .field--full {
+        grid-column: 1 / -1;
+    }
+
+    .field label {
+        font-size: 14px;
+        font-weight: 700;
+        color: #17324d;
+    }
+
+    .control,
+    .choice,
+    .course-trigger {
+        width: 100%;
+        border: 1px solid #d9e1e7;
+        border-radius: 14px;
+        background: #fff;
+        color: #17324d;
+        font: inherit;
+        font-size: 15px;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .typeahead-picker,
+    .course-picker {
+        position: relative;
+        display: grid;
+        gap: 8px;
+    }
+
+    .typeahead-input {
+        width: 100%;
+        min-height: 50px;
+        padding: 0 16px;
+        border: 1px solid #d9e1e7;
+        border-radius: 14px;
+        background: #fff;
+        color: #17324d;
+        font: inherit;
+        font-size: 15px;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .typeahead-input:focus,
+    .course-trigger:focus {
+        border-color: #168a45;
+        box-shadow: 0 0 0 4px rgba(22, 138, 69, 0.12);
+    }
+
+    .typeahead-input::placeholder {
+        color: #93a0ac;
+    }
+
+    .typeahead-menu {
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #e0e7ee;
+        border-radius: 16px;
+        box-shadow: 0 18px 40px rgba(21, 33, 44, 0.12);
+        overflow: hidden;
+        display: none;
+        z-index: 20;
+        max-height: 280px;
+        overflow-y: auto;
+    }
+
+    .typeahead-picker.open .typeahead-menu,
+    .course-picker.open .course-menu {
+        display: block;
+    }
+
+    .typeahead-option {
+        width: 100%;
+        text-align: left;
+        border: none;
+        background: #fff;
+        color: #17324d;
+        padding: 13px 16px;
+        cursor: pointer;
+        font: inherit;
+    }
+
+    .typeahead-option:hover {
+        background: #f1f7f3;
+    }
+
+    .typeahead-empty {
+        padding: 14px 16px;
+        color: #7a8793;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .upload-file {
+        width: 100%;
+        min-height: 54px;
+        padding: 0 16px;
+        border: 1px solid #d9e1e7;
+        border-radius: 14px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        cursor: pointer;
+    }
+
+    .upload-file:hover {
+        border-color: #c5d0d8;
+    }
+
+    .upload-file input {
+        display: none;
+    }
+
+    .upload-file-button {
+        border: none;
+        background: #168a45;
+        color: white;
+        border-radius: 999px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .upload-file-button:hover {
+        transform: translateY(-1px);
+    }
+
+    .upload-file-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .upload-file-name {
+        color: #17324d;
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .upload-file.is-muted .upload-file-name {
+        color: #93a0ac;
+    }
+
+    .upload-file-meta {
+        color: #7a8793;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .control:focus,
+    .choice:focus,
+    .course-trigger:focus {
+        border-color: #168a45;
+        box-shadow: 0 0 0 4px rgba(22, 138, 69, 0.12);
+    }
+
+    .control,
+    .course-trigger {
+        min-height: 50px;
+        padding: 0 16px;
+    }
+
+    .title-wrap {
+        display: grid;
+        gap: 8px;
+    }
+
+    .title-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 12px;
+        color: #7a8793;
+    }
+
+    .title-count {
+        white-space: nowrap;
+    }
+
+    .choice-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .choice {
+        position: relative;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        min-height: 50px;
+        width: auto;
+    }
+
+    .choice input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .choice-mark {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #444;
+        border-radius: 50%;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .choice input:checked + .choice-mark::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #111;
+        transform: translate(-50%, -50%);
+    }
+
+    .course-picker {
+        position: relative;
+        display: grid;
+        gap: 8px;
+    }
+
+    .course-trigger {
+        display: block;
+    }
+
+    .field-error {
+        min-height: 18px;
+        color: #b42318;
+        font-size: 13px;
+        line-height: 1.35;
+    }
+
+
+    .form-footer {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .submit-btn {
+        border: none;
+        background: #168a45;
+        color: white;
+        border-radius: 999px;
+        padding: 14px 22px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 10px 24px rgba(22, 138, 69, 0.18);
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 860px) {
+        .field-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .upload-form {
+            padding: 20px;
+        }
+    }
+</style>
+
+<section class="upload-page">
+    <div class="upload-shell">
+        <div class="upload-hero">
+            <div class="upload-eyebrow">Upload Past Paper</div>
+            <h1>Add Past Paper details.</h1>
+        </div>
+
+        <form class="upload-form" id="upload-form" action="{% url 'upload' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="field-grid">
+                <div class="field">
+                    <label for="university">University Name</label>
+                    <select id="university" name="university" class="control" required>
+                        <option value="" selected disabled>Select university</option>
+                        {% for university in available_universities %}
+                            <option value="{{ university.value }}">{{ university.value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="year">Year</label>
+                    <div class="typeahead-picker" id="year-picker">
+                        <input id="year-input" class="typeahead-input" type="text" autocomplete="off" placeholder="Type or select a year">
+                        <input type="hidden" id="year-value" name="year">
+                        <div class="typeahead-menu" id="year-menu"></div>
+                        <div class="field-error" id="year-error"></div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="title">Title</label>
+                    <div class="title-wrap">
+                        <input id="title" name="title" class="control" type="text" maxlength="120" placeholder="Enter paper title" required>
+                        <div class="title-meta">
+                            <span>Keep it concise and descriptive.</span>
+                            <span class="title-count" id="title-count">0/120</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="semester">Semester</label>
+                    <select id="semester" name="semester" class="control" required>
+                        <option value="" selected disabled>Select semester</option>
+                        <option value="1st Semester">1st Semester</option>
+                        <option value="2nd Semester">2nd Semester</option>
+                        <option value="3rd Semester">3rd Semester</option>
+                        <option value="4th Semester">4th Semester</option>
+                        <option value="5th Semester">5th Semester</option>
+                        <option value="6th Semester">6th Semester</option>
+                        <option value="7th Semester">7th Semester</option>
+                        <option value="8th Semester">8th Semester</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="session">Session</label>
+                    <select id="session" name="session" class="control" required>
+                        <option value="" selected disabled>Select session</option>
+                        <option value="Fall">Fall</option>
+                        <option value="Spring">Spring</option>
+                        <option value="Summer">Summer</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="program">Program</label>
+                    <select id="program" name="program" class="control" required disabled>
+                        <option value="" selected disabled>Select university first</option>
+                    </select>
+                </div>
+
+                <div class="field field--full">
+                    <label for="course-input">Course Name</label>
+                    <div class="course-picker" id="course-picker">
+                        <input id="course-input" class="typeahead-input" type="text" autocomplete="off" placeholder="Select program and semester first">
+                        <input type="hidden" id="course-name" name="course_name">
+                        <div class="typeahead-menu course-menu" id="course-menu"></div>
+                        <div class="field-error" id="course-error"></div>
+                    </div>
+                </div>
+
+                <div class="field field--full">
+                    <label for="paper-file">Upload File</label>
+                    <div class="upload-file is-muted" id="upload-file-box">
+                        <input id="paper-file" name="paper_file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp" multiple required>
+                        <span class="upload-file-text">
+                            <span class="upload-file-name" id="upload-file-name">Choose a File</span>
+                            <span class="upload-file-meta" id="upload-file-meta">Upto 3 images (only) allowed</span>
+                        </span>
+                        <button class="upload-file-button" id="upload-file-button" type="button">Choose a file</button>
+                    </div>
+                    <div class="field-error" id="file-error"></div>
+                </div>
+
+                <div class="field field--full">
+                    <label>Term</label>
+                    <div class="choice-row">
+                        <label class="choice">
+                            <input type="radio" name="term" value="Mid Term" required>
+                            <span class="choice-mark"></span>
+                            Mid Term
+                        </label>
+                        <label class="choice">
+                            <input type="radio" name="term" value="Final Term" required>
+                            <span class="choice-mark"></span>
+                            Final Term
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-footer">
+                <button class="submit-btn" type="submit">Upload Paper</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+{{ available_courses|json_script:"available-courses-data" }}
+{{ available_programs|json_script:"available-programs-data" }}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const titleInput = document.getElementById('title');
+        const titleCount = document.getElementById('title-count');
+        const form = document.getElementById('upload-form');
+        const universitySelect = document.getElementById('university');
+        const programSelect = document.getElementById('program');
+        const semesterSelect = document.getElementById('semester');
+        const yearPicker = document.getElementById('year-picker');
+        const yearInput = document.getElementById('year-input');
+        const yearValue = document.getElementById('year-value');
+        const yearMenu = document.getElementById('year-menu');
+        const yearError = document.getElementById('year-error');
+        const coursePicker = document.getElementById('course-picker');
+        const courseInput = document.getElementById('course-input');
+        const courseMenu = document.getElementById('course-menu');
+        const courseNameInput = document.getElementById('course-name');
+        const courseError = document.getElementById('course-error');
+        const fileInput = document.getElementById('paper-file');
+        const fileBox = document.getElementById('upload-file-box');
+        const fileButton = document.getElementById('upload-file-button');
+        const fileName = document.getElementById('upload-file-name');
+        const fileMeta = document.getElementById('upload-file-meta');
+        const fileError = document.getElementById('file-error');
+        const availableCourses = JSON.parse(document.getElementById('available-courses-data').textContent);
+        const availablePrograms = JSON.parse(document.getElementById('available-programs-data').textContent);
+
+        const years = Array.from({ length: 27 }, function (_, index) {
+            return String(2000 + index);
+        });
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function setError(element, message) {
+            element.textContent = message || '';
+        }
+
+        function setFileError(message) {
+            fileInput.setCustomValidity(message || '');
+            setError(fileError, message);
+        }
+
+        function isImageFile(file) {
+            if (!file) {
+                return false;
+            }
+
+            if (file.type && file.type.startsWith('image/')) {
+                return /\.(jpe?g|webp|bmp|png)$/i.test(file.name);
+            }
+
+            return /\.(jpe?g|webp|bmp|png)$/i.test(file.name);
+        }
+
+        function summarizeFiles(files) {
+            if (!files.length) {
+                return 'Choose a File';
+            }
+
+            if (files.length === 1) {
+                return files[0].name;
+            }
+
+            return `${files.length} image files selected`;
+        }
+
+        function renderOptions(menu, options, emptyMessage) {
+            if (!options.length) {
+                menu.innerHTML = `<div class="typeahead-empty">${emptyMessage}</div>`;
+                return;
+            }
+
+            menu.innerHTML = options.map(function (option) {
+                return `<button class="typeahead-option" type="button" data-value="${escapeHtml(option)}">${escapeHtml(option)}</button>`;
+            }).join('');
+        }
+
+        function renderPrograms() {
+            const programs = availablePrograms[universitySelect.value] || [];
+
+            programSelect.innerHTML = '';
+
+            if (!universitySelect.value) {
+                programSelect.disabled = true;
+                programSelect.innerHTML = '<option value="" selected disabled>Select university first</option>';
+                return;
+            }
+
+            if (!programs.length) {
+                programSelect.disabled = true;
+                programSelect.innerHTML = '<option value="" selected disabled>No programs available yet</option>';
+                return;
+            }
+
+            programSelect.disabled = false;
+            programSelect.innerHTML = '<option value="" selected disabled>Select program</option>' + programs.map(function (program) {
+                return `<option value="${escapeHtml(program)}">${escapeHtml(program)}</option>`;
+            }).join('');
+        }
+
+        function openYearMenu(query) {
+            const lowerQuery = query.trim().toLowerCase();
+            const filteredYears = years.filter(function (year) {
+                return year.toLowerCase().includes(lowerQuery);
+            });
+
+            yearPicker.classList.add('open');
+            renderOptions(yearMenu, filteredYears, 'No matching years found.');
+        }
+
+        function getCourseOptions() {
+            if (!universitySelect.value || !programSelect.value || !semesterSelect.value) {
+                return null;
+            }
+
+            const universityCourses = availableCourses[universitySelect.value] || {};
+
+            return universityCourses[`${programSelect.value}|${semesterSelect.value}`] || [];
+        }
+
+        function openCourseMenu(query) {
+            const options = getCourseOptions();
+
+            if (options === null) {
+                setError(courseError, 'Select University, Program and Semester before choosing Course Name.');
+                coursePicker.classList.remove('open');
+                courseMenu.innerHTML = '';
+                return;
+            }
+
+            setError(courseError, '');
+
+            if (!options.length) {
+                coursePicker.classList.add('open');
+                courseMenu.innerHTML = '<div class="typeahead-empty">No courses available yet.</div>';
+                courseInput.placeholder = 'No courses available yet';
+                return;
+            }
+
+            const lowerQuery = query.trim().toLowerCase();
+            const filteredCourses = options.filter(function (course) {
+                return course.toLowerCase().includes(lowerQuery);
+            });
+
+            coursePicker.classList.add('open');
+            renderOptions(courseMenu, filteredCourses, 'No matching courses found.');
+        }
+
+        function resetCourseField() {
+            courseNameInput.value = '';
+            courseInput.value = '';
+
+            const options = getCourseOptions();
+
+            if (options === null) {
+                courseInput.placeholder = 'Select university, program and semester first';
+                coursePicker.classList.remove('open');
+                courseMenu.innerHTML = '';
+                setError(courseError, '');
+                return;
+            }
+
+            if (!options.length) {
+                courseInput.placeholder = 'No courses available yet';
+                coursePicker.classList.remove('open');
+                courseMenu.innerHTML = '';
+                setError(courseError, '');
+                return;
+            }
+
+            courseInput.placeholder = 'Type or select a course';
+            courseMenu.innerHTML = '';
+            setError(courseError, '');
+        }
+
+        function getKey() {
+            return `${universitySelect.value}|${programSelect.value}|${semesterSelect.value}`;
+        }
+
+        function hasValidPrerequisites() {
+            return Boolean(universitySelect.value && programSelect.value && semesterSelect.value);
+        }
+
+        function getCourses() {
+            const universityCourses = availableCourses[universitySelect.value] || {};
+
+            return universityCourses[`${programSelect.value}|${semesterSelect.value}`] || [];
+        }
+
+        titleInput.addEventListener('input', function () {
+            titleCount.textContent = `${titleInput.value.length}/120`;
+        });
+
+        yearInput.addEventListener('focus', function () {
+            setError(yearError, '');
+            openYearMenu(yearInput.value);
+        });
+
+        yearInput.addEventListener('input', function () {
+            yearValue.value = '';
+            setError(yearError, '');
+            openYearMenu(yearInput.value);
+        });
+
+        yearInput.addEventListener('blur', function () {
+            window.setTimeout(function () {
+                yearPicker.classList.remove('open');
+            }, 150);
+        });
+
+        yearMenu.addEventListener('click', function (event) {
+            const option = event.target.closest('.typeahead-option');
+
+            if (!option) {
+                return;
+            }
+
+            yearInput.value = option.dataset.value;
+            yearValue.value = option.dataset.value;
+            setError(yearError, '');
+            yearPicker.classList.remove('open');
+        });
+
+        universitySelect.addEventListener('change', function () {
+            renderPrograms();
+            resetCourseField();
+        });
+        programSelect.addEventListener('change', resetCourseField);
+        semesterSelect.addEventListener('change', resetCourseField);
+
+        courseInput.addEventListener('focus', function () {
+            const options = getCourseOptions();
+
+            if (options === null) {
+                courseInput.blur();
+                setError(courseError, 'Select University, Program and Semester before choosing Course Name.');
+                return;
+            }
+
+            openCourseMenu('');
+        });
+
+        courseInput.addEventListener('input', function () {
+            const options = getCourseOptions();
+
+            courseNameInput.value = '';
+
+            if (options === null) {
+                setError(courseError, 'Select University, Program and Semester before choosing Course Name.');
+                courseInput.value = '';
+                return;
+            }
+
+            setError(courseError, '');
+            openCourseMenu(courseInput.value);
+        });
+
+        courseInput.addEventListener('blur', function () {
+            window.setTimeout(function () {
+                coursePicker.classList.remove('open');
+            }, 150);
+        });
+
+        courseMenu.addEventListener('click', function (event) {
+            const option = event.target.closest('.typeahead-option');
+
+            if (!option) {
+                return;
+            }
+
+            const selectedCourse = option.dataset.value;
+            courseNameInput.value = selectedCourse;
+            courseInput.value = selectedCourse;
+            setError(courseError, '');
+            coursePicker.classList.remove('open');
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!yearPicker.contains(event.target)) {
+                yearPicker.classList.remove('open');
+            }
+
+            if (!coursePicker.contains(event.target)) {
+                coursePicker.classList.remove('open');
+            }
+        });
+
+        fileInput.addEventListener('change', function () {
+            const files = Array.from(fileInput.files || []);
+
+            if (!files.length) {
+                fileName.textContent = 'Choose a File';
+                fileBox.classList.add('is-muted');
+                fileMeta.textContent = 'Images: up to 3 files. PDF or other files: 1 file.';
+                setFileError('');
+                return;
+            }
+
+            if (files.length > 3) {
+                fileInput.value = '';
+                fileName.textContent = 'Choose a File';
+                fileBox.classList.add('is-muted');
+                fileMeta.textContent = 'Images: up to 3 files. PDF or other files: 1 file.';
+                setFileError('You can upload up to 3 image files at a time.');
+                return;
+            }
+
+            if (files.length > 1 && !files.every(isImageFile)) {
+                fileInput.value = '';
+                fileName.textContent = 'Choose a File';
+                fileBox.classList.add('is-muted');
+                fileMeta.textContent = 'Images: up to 3 files. PDF or other files: 1 file.';
+                setFileError('Select only image files when uploading multiple files.');
+                return;
+            }
+
+            fileName.textContent = summarizeFiles(files);
+            fileBox.classList.remove('is-muted');
+            fileMeta.textContent = files.length > 1 ? 'Multiple image upload enabled.' : 'Single file selected.';
+            setFileError('');
+        });
+
+        fileButton.addEventListener('click', function () {
+            fileInput.click();
+        });
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            setError(yearError, '');
+            setError(courseError, '');
+
+            if (!form.reportValidity()) {
+                return;
+            }
+
+            let hasManualError = false;
+
+            if (!yearValue.value) {
+                setError(yearError, 'Please select a year from the list.');
+                hasManualError = true;
+            }
+
+            if (!courseNameInput.value) {
+                if (!universitySelect.value || !programSelect.value || !semesterSelect.value) {
+                    setError(courseError, 'Select University, Program and Semester before choosing Course Name.');
+                } else {
+                    setError(courseError, 'Please select a course from the list.');
+                }
+
+                hasManualError = true;
+            }
+
+            if (hasManualError) {
+                return;
+            }
+
+            form.submit();
+        });
+
+        resetCourseField();
+        renderPrograms();
+
+        renderOptions(yearMenu, years, 'No matching years found.');
+    });
+</script>
+{% endblock %}

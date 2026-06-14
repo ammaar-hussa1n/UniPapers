@@ -1,0 +1,1078 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+<style>
+    :root{
+        --bg:#eef3ef;
+        --surface:rgba(255,255,255,0.86);
+        --text:#0f172a;
+        --muted:#667085;
+        --border:#d8e0d9;
+        --shadow:0 24px 60px rgba(15, 23, 42, 0.12);
+        --accent:#167f46;
+        --accent-deep:#0f6a39;
+        --accent-soft:#e8f4ec;
+        --danger:#c24141;
+    }
+
+    .viewer-page{
+        min-height:calc(100vh - 72px);
+        padding:24px;
+        color:var(--text);
+        background:
+            radial-gradient(circle at top left, rgba(22, 127, 70, 0.12), transparent 30%),
+            radial-gradient(circle at top right, rgba(255, 255, 255, 0.8), transparent 24%),
+            linear-gradient(180deg, #f7faf7 0%, var(--bg) 58%, #ecf2ed 100%);
+    }
+
+    .reader-shell{
+        display:grid;
+        grid-template-columns:360px minmax(0, 1fr);
+        gap:28px;
+        max-width:1600px;
+        margin:0 auto;
+    }
+
+    .side-rail,
+    .reader-main{
+        border:1px solid rgba(215, 224, 217, 0.92);
+        background:var(--surface);
+        backdrop-filter:blur(16px);
+        box-shadow:var(--shadow);
+    }
+
+    .side-rail{
+        border-radius:28px;
+        padding:26px 22px;
+        display:flex;
+        flex-direction:column;
+        gap:22px;
+        align-self:start;
+        position:sticky;
+        top:96px;
+        max-height:calc(100vh - 120px);
+        overflow:auto;
+        align-items: flex-start;
+    }
+
+    .brand-chip{
+        display:inline-flex;
+        align-items:center;
+        width:max-content;
+        padding:10px 14px;
+        border-radius:999px;
+        background:var(--accent-soft);
+        color:var(--accent-deep);
+        font-size:12px;
+        font-weight:800;
+        letter-spacing:0.12em;
+        text-transform:uppercase;
+    }
+
+    .side-title{
+        font-size:clamp(1.55rem, 1.15rem + 1vw, 2.2rem);
+        line-height:1.15;
+        font-weight:800;
+        letter-spacing:-0.03em;
+        margin-top:4px;
+    }
+
+    .paper-summary{
+        color:var(--muted);
+        font-size:0.95rem;
+        line-height:1.7;
+    }
+
+    .meta-card{
+        border:1px solid var(--border);
+        border-radius:20px;
+        background:linear-gradient(180deg, #ffffff 0%, #f8faf8 100%);
+        padding:18px;
+    }
+
+    .meta-list {
+        list-style: none;
+        display: grid;
+        gap: 12px;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .meta-item {
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        text-align: left;
+    }
+
+    .meta-label {
+        color: var(--muted);
+        font-weight: 600;
+        flex-shrink: 0;
+        width: 100px;
+        text-align: left;
+    }
+
+    .meta-value {
+        text-align: left;
+        font-weight: 700;
+        color: var(--text);
+        word-break: break-word;
+        flex: 1;
+    }
+
+    .info-band{
+        display:grid;
+        gap:10px;
+        padding:18px;
+        border-radius:20px;
+        background:linear-gradient(135deg, rgba(22, 127, 70, 0.08), rgba(255,255,255,0.92));
+        border:1px solid rgba(22, 127, 70, 0.16);
+        font-size:0.95rem;
+        line-height:1.5;
+    }
+
+    .info-band strong{
+        color:var(--text);
+    }
+
+    .action-stack{
+        display:grid;
+        gap:12px;
+        width:100%;
+        align-self:stretch;
+    }
+
+    .action-btn{
+        appearance:none;
+        border:none;
+        border-radius:16px;
+        padding:14px 16px;
+        cursor:pointer;
+        text-decoration:none;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:14px;
+        text-align:left;
+        font-size:0.95rem;
+        font-weight:700;
+        letter-spacing:-0.01em;
+        color:var(--text);
+        background:linear-gradient(180deg, #ffffff 0%, #f6f9f7 100%);
+        border:1px solid var(--border);
+        width:100%;
+        box-sizing:border-box;
+        transition:transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .action-stack > form{
+        width:100%;
+    }
+
+    .action-btn:hover{
+        transform:translateY(-1px);
+        border-color:#bfd5c6;
+        box-shadow:0 12px 24px rgba(15, 23, 42, 0.08);
+        background:#ffffff;
+    }
+
+    .action-btn:focus-visible{
+        outline:3px solid rgba(22, 127, 70, 0.22);
+        outline-offset:2px;
+    }
+
+    .action-btn.action-primary{
+        background:linear-gradient(180deg, var(--accent) 0%, var(--accent-deep) 100%);
+        color:#fff;
+        border-color:transparent;
+    }
+
+    .action-btn.action-primary:hover{
+        background:linear-gradient(180deg, #1d8d50 0%, #12623a 100%);
+    }
+
+    .action-btn.action-danger{
+        color:var(--danger);
+    }
+
+    .action-btn.action-save{
+        color:var(--text);
+    }
+
+    .action-left{
+        display:flex;
+        align-items:center;
+        gap:12px;
+    }
+
+    .action-icon{
+        width:36px;
+        height:36px;
+        border-radius:12px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        background:rgba(22, 127, 70, 0.1);
+        color:var(--accent-deep);
+        font-size:1rem;
+        flex-shrink:0;
+    }
+
+    .action-btn.action-primary .action-icon{
+        background:rgba(255,255,255,0.16);
+        color:#fff;
+    }
+
+    .action-arrow{
+        color:currentColor;
+        opacity:0.55;
+        font-size:1.1rem;
+    }
+
+    .reader-main{
+        border-radius:32px;
+        padding:22px;
+        overflow:hidden;
+    }
+
+    .hero-panel{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:20px;
+        margin-bottom:22px;
+    }
+
+    .hero-copy{
+        max-width:900px;
+        display:grid;
+        gap:14px;
+    }
+
+    .topline{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+    }
+
+    .pill{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:9px 12px;
+        border-radius:999px;
+        background:rgba(255,255,255,0.9);
+        border:1px solid var(--border);
+        color:var(--muted);
+        font-size:0.85rem;
+        font-weight:600;
+    }
+
+    .pill strong{
+        color:var(--text);
+    }
+
+    .hero-note{
+        color:var(--muted);
+        font-size:0.98rem;
+        line-height:1.7;
+        max-width:860px;
+    }
+
+    .viewer-shell{
+        border-radius:30px;
+        border:1px solid var(--border);
+        background:linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(245,248,246,0.95) 100%);
+        box-shadow:0 22px 44px rgba(15, 23, 42, 0.08);
+        overflow:hidden;
+    }
+
+    .viewer-header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:14px;
+        padding:16px 18px;
+        border-bottom:1px solid var(--border);
+        background:rgba(255,255,255,0.7);
+    }
+
+    .viewer-label{
+        display:flex;
+        align-items:center;
+        font-size:0.88rem;
+        color:var(--muted);
+        font-weight:700;
+        letter-spacing:0.04em;
+        text-transform:uppercase;
+    }
+
+    .viewer-body{
+        padding:16px;
+        background:
+            linear-gradient(rgba(22, 127, 70, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(22, 127, 70, 0.04) 1px, transparent 1px),
+            #eef3ef;
+        background-size:28px 28px;
+    }
+
+    .paper-frame{
+        position:relative;
+        min-height:calc(100vh - 228px);
+        max-height:calc(100vh - 228px);
+        border-radius:24px;
+        overflow:auto;
+        background:#fff;
+        border:1px solid rgba(209, 219, 212, 0.95);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
+    }
+
+    .paper-frame::before{
+        content:'';
+        position:absolute;
+        inset:0;
+        background:linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 14%);
+        pointer-events:none;
+        z-index:1;
+    }
+
+    .paper-watermark{
+        position:absolute;
+        top:50%;
+        left:50%;
+        transform:translate(-50%, -50%) rotate(-30deg);
+        font-size:clamp(4.5rem, 9vw, 9.5rem);
+        font-weight:800;
+        letter-spacing:0.18em;
+        color:rgba(22, 127, 70, 0.08);
+        white-space:nowrap;
+        pointer-events:none;
+        z-index:0;
+        user-select:none;
+    }
+
+    .pdf-embed,
+    .image-preview{
+        position:relative;
+        z-index:2;
+        width:100%;
+        min-height:calc(100vh - 228px);
+        border:none;
+        background:#fff;
+    }
+
+    
+
+    .pdf-renderer{
+        display:grid;
+        gap:16px;
+        padding:20px;
+        background:#f7faf7;
+    }
+
+    .pdf-page{
+        width:100%;
+        display:block;
+        background:white;
+        border-radius:16px;
+        box-shadow:0 12px 30px rgba(15, 23, 42, 0.08);
+        border:1px solid rgba(209, 219, 212, 0.9);
+    }
+
+    .image-preview{
+        display:block;
+        width:100%;
+        height:auto;
+        object-fit:contain;
+        background:#f7faf7;
+    }
+
+    .image-gallery{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:20px;
+        padding:20px;
+    }
+
+    .gallery-card{
+        margin:0;
+        border:1px solid rgba(209, 219, 212, 0.95);
+        border-radius:18px;
+        overflow:hidden;
+        background:#fff;
+        box-shadow:0 10px 26px rgba(15, 23, 42, 0.06);
+    }
+
+    .gallery-image{
+        display:block;
+        width:100%;
+        height:auto;
+        object-fit:contain;
+        background:#f7faf7;
+        transform: translateZ(0);
+    }
+
+    .gallery-caption{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        padding:12px 14px;
+        border-top:1px solid rgba(209, 219, 212, 0.9);
+        color:var(--muted);
+        font-size:0.88rem;
+        font-weight:600;
+    }
+
+    .gallery-badge{
+        display:inline-flex;
+        align-items:center;
+        padding:6px 10px;
+        border-radius:999px;
+        background:var(--accent-soft);
+        color:var(--accent-deep);
+        font-size:0.76rem;
+        font-weight:800;
+        white-space:nowrap;
+    }
+
+    .file-fallback{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        min-height:calc(100vh - 228px);
+        padding:28px;
+        text-align:center;
+        color:var(--muted);
+    }
+
+    .reader-footer{
+        display:flex;
+        justify-content:space-between;
+        flex-wrap:wrap;
+        gap:10px;
+        padding:16px 4px 4px;
+        color:var(--muted);
+        font-size:0.9rem;
+    }
+
+    .status-line{
+        display:inline-flex;
+        align-items:center;
+    }
+
+    .status-pill{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:9px 12px;
+        border-radius:999px;
+        font-size:0.85rem;
+        font-weight:700;
+        border:1px solid transparent;
+        white-space:nowrap;
+    }
+
+    .status-pill.is-approved{
+        background:#e7f6ec;
+        color:#168a45;
+        border-color:#b8e3c7;
+    }
+
+    .status-pill.is-pending{
+        background:#fff5d9;
+        color:#a16207;
+        border-color:#f1d28a;
+    }
+
+    .paper-toast{
+        position:fixed;
+        left:50%;
+        bottom:24px;
+        transform:translateX(-50%) translateY(24px);
+        opacity:0;
+        pointer-events:none;
+        padding:12px 16px;
+        border-radius:999px;
+        background:rgba(15, 23, 42, 0.92);
+        color:#fff;
+        box-shadow:0 18px 40px rgba(15, 23, 42, 0.25);
+        transition:opacity 180ms ease, transform 180ms ease;
+        font-size:0.92rem;
+        z-index:50;
+    }
+
+    .report-modal{
+        position:fixed;
+        inset:0;
+        display:none;
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+        background:rgba(15, 23, 42, 0.55);
+        backdrop-filter:blur(8px);
+        z-index:60;
+    }
+
+    .report-modal.is-open{
+        display:flex;
+    }
+
+    .report-dialog{
+        width:min(100%, 520px);
+        border-radius:28px;
+        background:#fff;
+        box-shadow:0 30px 80px rgba(15, 23, 42, 0.25);
+        border:1px solid rgba(215, 224, 217, 0.95);
+        overflow:hidden;
+    }
+
+    .report-dialog-header{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:16px;
+        padding:22px 22px 0;
+    }
+
+    .report-dialog-title{
+        font-size:1.2rem;
+        font-weight:800;
+        color:var(--text);
+        line-height:1.25;
+    }
+
+    .report-dialog-text{
+        margin-top:8px;
+        color:var(--muted);
+        line-height:1.6;
+        font-size:0.95rem;
+    }
+
+    .report-close{
+        border:none;
+        background:#eef3ef;
+        color:var(--text);
+        width:40px;
+        height:40px;
+        border-radius:12px;
+        cursor:pointer;
+        font-size:1.1rem;
+        flex-shrink:0;
+    }
+
+    .report-form{
+        padding:20px 22px 22px;
+        display:grid;
+        gap:16px;
+    }
+
+    .report-options{
+        display:grid;
+        gap:10px;
+    }
+
+    .report-option{
+        display:flex;
+        align-items:center;
+        gap:12px;
+        padding:12px 14px;
+        border-radius:16px;
+        border:1px solid var(--border);
+        background:#f8faf8;
+        cursor:pointer;
+    }
+
+    .report-option:hover{
+        border-color:#bfd5c6;
+        background:#ffffff;
+    }
+
+    .report-option input{
+        margin:0;
+        width:18px;
+        height:18px;
+        accent-color:var(--accent);
+    }
+
+    .report-option span:last-child{
+        font-size:0.95rem;
+        color:var(--text);
+        font-weight:600;
+    }
+
+    .report-actions{
+        display:flex;
+        justify-content:flex-end;
+        gap:10px;
+    }
+
+    .report-submit,
+    .report-cancel{
+        border:none;
+        border-radius:14px;
+        padding:12px 16px;
+        font-weight:700;
+        cursor:pointer;
+    }
+
+    .report-submit{
+        background:var(--accent);
+        color:#fff;
+    }
+
+    .report-cancel{
+        background:#eef3ef;
+        color:var(--text);
+    }
+
+    .paper-toast.is-visible{
+        opacity:1;
+        transform:translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 1180px){
+        .reader-shell{
+            grid-template-columns:1fr;
+        }
+
+        .side-rail{
+            position:static;
+            max-height:none;
+        }
+
+        .paper-frame,
+        .pdf-embed,
+        .image-preview,
+        .file-fallback{
+            min-height:72vh;
+        }
+    }
+
+    @media (max-width: 720px){
+        .viewer-page{
+            padding:14px;
+        }
+
+        .reader-shell{
+            gap:16px;
+        }
+
+        .side-rail,
+        .reader-main{
+            border-radius:22px;
+            padding:18px;
+        }
+
+        .reader-main{
+            padding:18px;
+        }
+
+        .hero-panel{
+            flex-direction:column;
+        }
+
+        .viewer-header{
+            align-items:flex-start;
+            flex-direction:column;
+        }
+
+        .meta-item{
+            flex-direction:column;
+            gap:4px;
+        }
+
+        .meta-value{
+            text-align:left;
+        }
+
+        .paper-frame,
+        .pdf-embed,
+        .image-preview,
+        .file-fallback{
+            min-height:68vh;
+        }
+    }
+
+    .gallery-caption-left {
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+
+    /* Specific component styles for individual image card download buttons */
+    .card-download-btn {
+        appearance: none;
+        background: var(--accent-soft);
+        color: var(--accent-deep);
+        border: 1px solid rgba(22, 127, 70, 0.15);
+        border-radius: 10px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+    }
+
+    .card-download-btn:hover {
+        background: var(--accent);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+</style>
+
+<div class="viewer-page">
+    <div class="reader-shell">
+        <aside class="side-rail">
+            <div class="meta-card">
+                <ul class="meta-list">
+                    <li class="meta-item">
+                        <span class="meta-label">University : </span>
+                        <span class="meta-value">{{ record.course.uni.uni_name }}</span>
+                    </li>
+                    <li class="meta-item">
+                        <span class="meta-label">Program : </span>
+                        <span class="meta-value">{{ record.course.program }}</span>
+                    </li>
+                    <li class="meta-item">
+                        <span class="meta-label">Semester : </span>
+                        <span class="meta-value">{{ record.course.semester }}</span>
+                    </li>
+                    <li class="meta-item">
+                        <span class="meta-label">Course : </span>
+                        <span class="meta-value">{{ record.course.course_name }}</span>
+                    </li>
+                    <li class="meta-item">
+                        <span class="meta-label">Year : </span>
+                        <span class="meta-value">{{ record.course.year }}</span>
+                    </li>
+                    <li class="meta-item">
+                        <span class="meta-label">Session : </span>
+                        <span class="meta-value">{{ record.course.session }}</span>
+                    </li>
+                    <li class="meta-item">
+                        <span class="meta-label">Term : </span>
+                        <span class="meta-value">{{ record.course.term }}</span>
+                    </li>
+                    <li class="meta-item">
+                        <span class="meta-label">Uploaded by : </span>
+                        <span class="meta-value">{{ record.uploaded_by }}</span>
+                    </li>
+                    <li class="meta-item">
+                        <span class="meta-label">Uploaded on : </span>
+                        <span class="meta-value">{{ record.uploaded_at|date:"M d, Y" }}</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="action-stack" aria-label="Paper actions">
+                {% if not record.is_image %}
+                    <button class="action-btn action-primary" type="button" onclick="downloadFile()">
+                        <span class="action-left">
+                            <span class="action-icon">↓</span>
+                            <span>Download</span>
+                        </span>
+                        <span class="action-arrow">↗</span>
+                    </button>
+                {% endif %}
+                <form method="post" action="{% url 'view_paper' record.id record.title|slugify %}" style="display:block;">
+                    {% csrf_token %}
+                    <button class="action-btn action-save" type="submit" name="action" value="toggle_save">
+                        <span class="action-left">
+                            <span class="action-icon">{% if is_saved %}★{% else %}☆{% endif %}</span>
+                            <span>{% if is_saved %}Saved{% else %}Save Paper{% endif %}</span>
+                        </span>
+                        <span class="action-arrow">↗</span>
+                    </button>
+                </form>
+
+                <button class="action-btn" type="button" onclick="shareFile()">
+                    <span class="action-left">
+                        <span class="action-icon">↗</span>
+                        <span>Share</span>
+                    </span>
+                    <span class="action-arrow">↗</span>
+                </button>
+
+                <button class="action-btn action-danger" type="button" onclick="reportFile()">
+                    <span class="action-left">
+                        <span class="action-icon">!</span>
+                        <span>Report</span>
+                    </span>
+                    <span class="action-arrow">↗</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="reader-main">
+            <section class="hero-panel">
+                <div class="hero-copy">
+                    <div class="topline">
+                        <span class="pill"><strong>{{ record.course.uni.uni_name }}</strong></span>
+                        <span class="pill">{{ record.course.program }}</span>
+                        <span class="pill">{{ record.course.course_name }}</span>
+                        <span class="pill">{{ record.course.semester }}</span>
+                        <span class="pill">{{ record.course.year }}</span>
+                        {% if user_is_admin or is_owner%}
+                            <span class="status-pill {% if record.status == 'Approved' %}is-approved{% else %}is-pending{% endif %}">
+                                {{ record.status }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <h1 class="side-title">{{ record.title }}</h1>
+                </div>
+            </section>
+
+            <section class="viewer-shell" aria-label="Paper preview">
+                <div class="viewer-header">
+                    <div class="viewer-label">Document Preview</div>
+                    <div class="pill">Uploaded {{ record.uploaded_at|date:"M d, Y" }}</div>
+                    {% if has_multiple_attachments %}
+                        <div class="pill">{{ image_attachments|length }} images</div>
+                    {% endif %}
+                </div>
+
+                <div class="viewer-body">
+                    <div class="paper-frame">
+                        {% if record.is_pdf %}
+                            <iframe
+                                id="pdfRenderer"
+                                class="pdf-embed"
+                                title="{{ record.title }}"
+                                loading="lazy"
+                            ></iframe>
+                        {% elif image_attachments %}
+                            <div class="image-gallery">
+                                {% for attachment in image_attachments %}
+                                    <figure class="gallery-card">
+                                        <img class="gallery-image" src="{{ attachment.url }}" alt="{{ attachment.title }} image {{ forloop.counter }}">
+                                        <figcaption class="gallery-caption">
+                                            <div class="gallery-caption-left">
+                                                <span>Image {{ forloop.counter }}</span>
+                                                <span class="gallery-badge">{{ attachment.name|cut:"vault/pending/" }}</span>
+                                            </div>
+                                            <button class="card-download-btn" type="button" onclick="downloadFile('{{ attachment.url|escapejs }}', '{{ attachment.name|escapejs }}')">
+                                                <span>↓ Download</span>
+                                            </button>
+                                        </figcaption>
+                                    </figure>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="file-fallback">
+                                Preview not available for this file type. <a href="{{ record.file.url }}"> Download the file</a> to open it directly.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <div class="reader-footer">
+                <span>{{ record.course.uni.uni_name }} · {{ record.course.course_name }} · {{ record.course.session }} · {{ record.course.term }}</span>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div class="paper-toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="report-modal" id="reportModal" aria-hidden="true">
+    <div class="report-dialog" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+        <div class="report-dialog-header">
+            <div>
+                <div class="report-dialog-title" id="reportTitle">Report this paper</div>
+                <div class="report-dialog-text">Choose the closest issue. Visible only to the admin.</div>
+            </div>
+            <button class="report-close" type="button" aria-label="Close report dialog" onclick="closeReportModal()">×</button>
+        </div>
+
+        <form class="report-form" method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="report">
+
+            <div class="report-options">
+                {% for reason in report_reason_choices %}
+                    <label class="report-option">
+                        <input type="radio" name="reported_reason" value="{{ reason }}" required>
+                        <span>{{ reason }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+
+            <div class="report-actions">
+                <button class="report-cancel" type="button" onclick="closeReportModal()">Cancel</button>
+                <button class="report-submit" type="submit">Submit report</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const fileUrl = "{{ record.file.url }}";
+    const previewUrl = "{{ preview_url|escapejs }}";
+    // CHANGED: Pulled straight from the record field context 
+    const fileName = "{{ record.file.name|escapejs }}";
+    const paperTitle = "{{ record.title|escapejs }}";
+    const paperUrl = window.location.href;
+    const paperId = "{{ record.id }}";
+    const toast = document.getElementById('toast');
+    const reportModal = document.getElementById('reportModal');
+    const pdfRenderer = document.getElementById('pdfRenderer');
+    let pdfObjectUrl = null;
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('is-visible');
+        clearTimeout(window.toastTimer);
+        window.toastTimer = setTimeout(() => {
+            toast.classList.remove('is-visible');
+        }, 2200);
+    }
+
+    // CHANGED: Added targetUrl and targetName parameters with fallbacks to preserve sidebar button
+    function downloadFile(targetUrl, targetName) {
+        const urlToDownload = targetUrl || fileUrl;
+        const nameToSave = targetName || fileName;
+
+        const link = document.createElement('a');
+        link.href = urlToDownload;
+        link.download = nameToSave;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        showToast('Download started');
+    }
+
+    function saveFile() {
+        const storageKey = 'saved_' + paperId;
+        if (localStorage.getItem(storageKey)) {
+            showToast('Already saved to this browser');
+            return;
+        }
+
+        localStorage.setItem(storageKey, 'true');
+        showToast('Paper saved locally');
+    }
+
+    async function shareFile() {
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: paperTitle,
+                    text: 'Check out this past paper on UniPapers : ',
+                    url: paperUrl
+                });
+                showToast('Share sheet opened');
+                return;
+            }
+        } catch (error) {
+            showToast('Share cancelled');
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(paperUrl);
+            showToast('Link copied to clipboard');
+        } catch (error) {
+            const textArea = document.createElement('textarea');
+            textArea.value = paperUrl;
+            textArea.setAttribute('readonly', 'readonly');
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showToast('Link copied to clipboard');
+        }
+    }
+
+    function reportFile() {
+        reportModal.classList.add('is-open');
+        reportModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeReportModal() {
+        reportModal.classList.remove('is-open');
+        reportModal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    reportModal.addEventListener('click', (event) => {
+        if (event.target === reportModal) {
+            closeReportModal();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && reportModal.classList.contains('is-open')) {
+            closeReportModal();
+        }
+    });
+
+    async function renderPdf() {
+        if (!pdfRenderer) {
+            return;
+        }
+
+        try {
+            const response = await fetch(previewUrl);
+            if (!response.ok) {
+                throw new Error('Preview request failed');
+            }
+
+            const blob = await response.blob();
+            if (pdfObjectUrl) {
+                URL.revokeObjectURL(pdfObjectUrl);
+            }
+
+            pdfObjectUrl = URL.createObjectURL(blob);
+            pdfRenderer.src = pdfObjectUrl;
+        } catch (error) {
+            // 1. Create the container div securely
+            const fallback = document.createElement('div');
+            fallback.className = 'file-fallback';
+            
+            // 2. Add the initial warning text safely as text content
+            const textNode = document.createTextNode('PDF preview could not be rendered. ');
+            fallback.appendChild(textNode);
+
+            // 3. Create the download link securely using element properties
+            const downloadLink = document.createElement('a');
+            downloadLink.href = fileUrl;                            // Safe property assignment
+            downloadLink.textContent = 'Download the file';          // Explicitly treated as plain text
+            downloadLink.target = '_blank';                         // Good practice for accessibility
+            
+            // 4. Add the rest of the text trailing the link
+            const trailingTextNode = document.createTextNode(' to open it directly.');
+
+            // 5. Build the complete element structure cleanly
+            fallback.appendChild(downloadLink);
+            fallback.appendChild(trailingTextNode);
+
+            // 6. Replace the renderer object on the screen
+            pdfRenderer.replaceWith(fallback);
+        }
+    }
+
+    if (pdfRenderer) {
+        renderPdf();
+    }
+
+    window.addEventListener('beforeunload', () => {
+        if (pdfObjectUrl) {
+            URL.revokeObjectURL(pdfObjectUrl);
+        }
+    });
+</script>
+{% endblock %}

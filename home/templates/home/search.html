@@ -1,0 +1,792 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+<style>
+    *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+        font-family:'Inter', sans-serif;
+    }
+
+    body{
+        background:#f6f6f6;
+        color:#111;
+    }
+
+    .search-page{
+        min-height:calc(100vh - 72px);
+        padding:40px 0;
+    }
+
+    .container{
+        width:78%;
+        margin:0 auto;
+    }
+
+    .filter-bar{
+        display:flex;
+        align-items:center;
+        gap:14px;
+        flex-wrap:wrap;
+        margin-bottom:35px;
+    }
+
+    .filter-note{
+        margin:0 0 12px;
+        font-size:13px;
+        color:#6b7280;
+        line-height:1.4;
+    }
+
+    .filter-group{
+        position:relative;
+    }
+
+    .filter-dropdown{
+        position:relative;
+        display:flex;
+        align-items:center;
+        height:100%;
+    }
+
+    .filter-dropdown::after{
+        content:'';
+        position:absolute;
+        left:0;
+        right:0;
+        top:100%;
+        height:12px;
+    }
+
+    .filter-btn{
+        border:none;
+        background:none;
+        font-size:15px;
+        cursor:pointer;
+        padding:0;
+        color:inherit;
+        display:flex;
+        align-items:center;
+        gap:8px;
+        height:100%;
+        line-height:1;
+        font-family:inherit;
+    }
+
+    .filter-btn.is-active{
+        color:#168a45;
+        font-weight:600;
+    }
+
+    .filter-btn-text{
+        display:inline-block;
+        max-width:150px;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        vertical-align:bottom;
+    }
+
+    .filter-caret{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        width:18px;
+        height:18px;
+        border-radius:999px;
+        border:1px solid #cfd6dc;
+        color:#6b7280;
+        font-size:11px;
+        flex-shrink:0;
+    }
+
+    .filter-menu{
+        position:absolute;
+        top:calc(100% - 1px);
+        left:50%;
+        transform:translateX(-50%);
+        width:320px;
+        background:white;
+        border-radius:10px;
+        box-shadow:0 5px 25px rgba(0,0,0,0.15);
+        padding:18px;
+        display:none;
+        z-index:1001;
+    }
+
+    .filter-dropdown:hover .filter-menu,
+    .filter-dropdown:focus-within .filter-menu{
+        display:block;
+    }
+
+    .filter-menu-title{
+        margin-bottom:12px;
+        font-size:15px;
+        font-weight:700;
+        color:#111;
+    }
+
+    .filter-menu-list{
+        display:grid;
+        gap:8px;
+        max-height:280px;
+        overflow:auto;
+    }
+
+    .filter-menu-list.compact-grid{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+        gap:8px;
+    }
+
+    .filter-menu-list.term-grid{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+        gap:8px;
+    }
+
+    .filter-option{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        cursor:pointer;
+        white-space:nowrap;
+        user-select:none;
+        width:100%;
+        padding:10px 12px;
+        border-radius:12px;
+    }
+
+    .filter-option input{
+        position:absolute;
+        opacity:0;
+        pointer-events:none;
+    }
+
+    .circle{
+        width:18px;
+        height:18px;
+        border:2px solid #444;
+        border-radius:50%;
+        position:relative;
+        flex-shrink:0;
+    }
+
+    .filter-option input:checked + .circle::after{
+        content:'';
+        width:8px;
+        height:8px;
+        background:#111;
+        border-radius:50%;
+        position:absolute;
+        top:50%;
+        left:50%;
+        transform:translate(-50%, -50%);
+    }
+
+    .filter-option-text{
+        font-size:14px;
+        color:#222;
+    }
+
+    .filter-option:hover{
+        background:#f4f7f5;
+    }
+
+    .filter-option.is-selected{
+        background:#e9f7ee;
+        color:#168a45;
+        font-weight:700;
+    }
+
+    .clear-text{
+        margin-left:10px;
+        color:#555;
+        cursor:pointer;
+        font-size:15px;
+    }
+
+    .clear-text a{
+        color:inherit;
+        text-decoration:none;
+    }
+
+    .clear-text:hover{
+        color:#168a45;
+    }
+
+    .results-count{
+        font-size:18px;
+        margin-bottom:25px;
+    }
+
+    .pdf-card{
+        width:100%;
+        background:white;
+        border:1px solid #dddddd;
+        padding:20px;
+        display:flex;
+        justify-content:space-between;
+        align-items:stretch;  
+        gap:25px;
+        margin-bottom:18px;
+        transition:0.2s;
+        cursor:pointer;
+    }
+
+    .pdf-card:hover{
+        box-shadow:0 3px 10px rgba(0,0,0,0.08);
+        background:#fafafa;
+    }
+
+    .pdf-left{
+        display:flex;
+        gap:22px;
+        width:100%;
+    }
+
+    .pdf-thumbnail{
+        width:105px;
+        min-width:105px;
+        height:145px;
+        background:#f1f1f1;
+        border:1px solid #d7d7d7;
+        position:relative;
+        overflow:hidden;
+    }
+
+    .thumbnail-preview-media{
+        width:100%;
+        height:100%;
+        display:block;
+        border:0;
+        object-fit:cover;
+        pointer-events:none;
+        background:#fff;
+    }
+
+    .pdf-label{
+        position:absolute;
+        top:0;
+        left:0;
+        background:#222;
+        color:white;
+        font-size:11px;
+        font-weight:600;
+        padding:5px 9px;
+    }
+
+    .thumbnail-content{
+        width:100%;
+        height:100%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#999;
+        font-size:14px;
+    }
+
+    .pdf-info{
+        flex:1;
+    }
+
+    .pdf-stats{
+        display:flex;
+        gap:14px;
+        flex-wrap:wrap;
+        font-size:14px;
+        color:#444;
+        margin-bottom:12px;
+    }
+
+    .pdf-title{
+        font-size:20px;
+        font-weight:700;
+        margin-bottom:12px;
+        cursor:pointer;
+    }
+
+    .pdf-title:hover{
+        text-decoration:underline;
+    }
+
+    .pdf-description{
+        color:#444;
+        font-size:16px;
+        line-height:1.6;
+        margin-bottom:14px;
+    }
+
+    .pdf-upload{
+        font-size:14px;
+        color:#555;
+    }
+
+    .pdf-upload span{
+        text-decoration:underline;
+        cursor:pointer;
+    }
+
+    .pdf-actions{
+        display:flex;
+        gap:18px;
+        align-items:flex-start;
+        font-size:24px;
+        color:#333;
+        padding-top:5px;
+    }
+
+    .pdf-actions div{
+        cursor:pointer;
+    }
+
+    .pdf-actions a{
+        color:inherit;
+        text-decoration:none;
+    }
+    .pdf-card-right{
+        min-width:130px;
+        display:flex;
+        justify-content:flex-end;
+        align-items:flex-start;
+        padding-top:2px;
+    }
+
+    .status-bubble{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:8px 12px;
+        border-radius:999px;
+        font-size:12px;
+        font-weight:700;
+        letter-spacing:0.02em;
+        border:1px solid transparent;
+        white-space:nowrap;
+    }
+
+    .status-bubble.is-approved{
+        background:#e7f6ec;
+        color:#168a45;
+        border-color:#b8e3c7;
+    }
+
+    .status-bubble.is-pending{
+        background:#fff5d9;
+        color:#a16207;
+        border-color:#f1d28a;
+    }
+    .pdf-title a{
+        color:inherit;
+        text-decoration:none;
+    }
+
+    .empty-state{
+        background:white;
+        border:1px solid #dddddd;
+        padding:28px;
+        font-size:16px;
+        color:#444;
+    }
+
+    .pagination-wrap{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:14px;
+        flex-wrap:wrap;
+        margin:26px 0 8px;
+    }
+
+    .pagination-pages{
+        display:flex;
+        align-items:center;
+        gap:8px;
+        flex-wrap:wrap;
+    }
+
+    .pagination-btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        min-width:42px;
+        min-height:42px;
+        padding:0 14px;
+        border:1px solid #d7dfe6;
+        border-radius:12px;
+        background:#fff;
+        color:#17324d;
+        text-decoration:none;
+        font-size:14px;
+        font-weight:600;
+        transition:border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+
+    .pagination-btn:hover{
+        border-color:#168a45;
+        color:#168a45;
+    }
+
+    .pagination-btn.is-current{
+        background:#168a45;
+        border-color:#168a45;
+        color:#fff;
+    }
+
+    .pagination-ellipsis{
+        color:#7a8793;
+        font-weight:700;
+        padding:0 6px;
+    }
+
+    .filter-option.is-selected .circle{
+        border-color:#168a45;
+    }
+
+    .filter-option.is-selected .filter-option-text{
+        color:#168a45;
+        font-weight:700;
+    }
+
+    .filter-option.is-selected .circle{
+        border-color:#168a45;
+    }
+
+    .filter-subtle{
+        font-size:12px;
+        color:#7a8793;
+        margin-top:2px;
+    }
+
+    @media(max-width:900px){
+        .container{
+            width:94%;
+        }
+
+        .pdf-card{
+            flex-direction:column;
+        }
+
+        .pdf-left{
+            flex-direction:column;
+        }
+
+        .pdf-actions{
+            justify-content:flex-end;
+        }
+
+        .pdf-thumbnail{
+            width:100%;
+            height:220px;
+        }
+        .pdf-card-right{
+            min-width:0;
+            justify-content:flex-start;
+            padding-top:0;
+        }
+    }
+</style>
+
+<div class="search-page">
+    <div class="container">
+        <p class="filter-note">Select University, Semester & Program to filter Courses aswell.</p>
+        <div class="filter-bar" id="filterBar">
+            <div class="filter-dropdown filter-group">
+                <button class="filter-btn {% if selected_university %}is-active{% endif %}" type="button">
+                    <span class="filter-btn-text">{{ selected_university|default:'University' }}</span>
+                    <span class="filter-caret">⌄</span>
+                </button>
+                <div class="filter-menu">
+                    <div class="filter-menu-title">University</div>
+                    <div class="filter-menu-list">
+                        <label class="filter-option {% if not selected_university %}is-selected{% endif %}" data-filter-key="university" data-filter-value="">
+                            <input type="radio" name="search_university" {% if not selected_university %}checked{% endif %}>
+                            <span class="circle"></span>
+                            <span class="filter-option-text">All universities</span>
+                        </label>
+                        {% for university in available_universities %}
+                            <label class="filter-option {% if selected_university == university.value %}is-selected{% endif %}" data-filter-key="university" data-filter-value="{{ university.value }}">
+                                <input type="radio" name="search_university" {% if selected_university == university.value %}checked{% endif %}>
+                                <span class="circle"></span>
+                                <span class="filter-option-text">{{ university.label }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-dropdown filter-group">
+                <button class="filter-btn {% if selected_semester %}is-active{% endif %}" type="button">
+                    <span class="filter-btn-text">{{ selected_semester|default:'Semester' }}</span>
+                    <span class="filter-caret">⌄</span>
+                </button>
+                <div class="filter-menu">
+                    <div class="filter-menu-title">Semester</div>
+                    <div class="filter-menu-list compact-grid">
+                        <label class="filter-option {% if not selected_semester %}is-selected{% endif %}" data-filter-key="semester" data-filter-value="">
+                            <input type="radio" name="search_semester" {% if not selected_semester %}checked{% endif %}>
+                            <span class="circle"></span>
+                            <span class="filter-option-text">All</span>
+                        </label>
+                        {% for semester in available_semesters %}
+                            <label class="filter-option {% if selected_semester == semester.value %}is-selected{% endif %}" data-filter-key="semester" data-filter-value="{{ semester.value }}">
+                                <input type="radio" name="search_semester" {% if selected_semester == semester.value %}checked{% endif %}>
+                                <span class="circle"></span>
+                                <span class="filter-option-text">{{ semester.label }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            
+
+            <div class="filter-dropdown filter-group">
+                <button class="filter-btn {% if selected_program %}is-active{% endif %}" type="button">
+                    <span class="filter-btn-text">{{ selected_program|default:'Program' }}</span>
+                    <span class="filter-caret">⌄</span>
+                </button>
+                <div class="filter-menu">
+                    <div class="filter-menu-title">Program</div>
+                    <div class="filter-menu-list">
+                        <label class="filter-option {% if not selected_program %}is-selected{% endif %}" data-filter-key="program" data-filter-value="">
+                            <input type="radio" name="search_program" {% if not selected_program %}checked{% endif %}>
+                            <span class="circle"></span>
+                            <span class="filter-option-text">All programs</span>
+                        </label>
+                        {% for program in available_programs %}
+                            <label class="filter-option {% if selected_program == program %}is-selected{% endif %}" data-filter-key="program" data-filter-value="{{ program }}">
+                                <input type="radio" name="search_program" {% if selected_program == program %}checked{% endif %}>
+                                <span class="circle"></span>
+                                <span class="filter-option-text">{{ program }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% if selected_university and selected_semester and selected_program and available_courses %}
+                <div class="filter-dropdown filter-group">
+                    <button class="filter-btn {% if selected_course_name %}is-active{% endif %}" type="button">
+                        <span class="filter-btn-text">{{ selected_course_name|default:'Course' }}</span>
+                        <span class="filter-caret">⌄</span>
+                    </button>
+                    <div class="filter-menu">
+                        <div class="filter-menu-title">Course</div>
+                        <div class="filter-menu-list">
+                            <label class="filter-option {% if not selected_course_name %}is-selected{% endif %}" data-filter-key="course_name" data-filter-value="">
+                                <input type="radio" name="search_course" {% if not selected_course_name %}checked{% endif %}>
+                                <span class="circle"></span>
+                                <span class="filter-option-text">All courses</span>
+                            </label>
+                            {% for course in available_courses %}
+                                <label class="filter-option {% if selected_course_name == course %}is-selected{% endif %}" data-filter-key="course_name" data-filter-value="{{ course }}">
+                                    <input type="radio" name="search_course" {% if selected_course_name == course %}checked{% endif %}>
+                                    <span class="circle"></span>
+                                    <span class="filter-option-text">{{ course }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            {% if user_is_admin %}
+                <div class="filter-dropdown filter-group">
+                    <button class="filter-btn {% if selected_status %}is-active{% endif %}" type="button">
+                        <span class="filter-btn-text">{{ selected_status|default:'Status' }}</span>
+                        <span class="filter-caret">⌄</span>
+                    </button>
+                    <div class="filter-menu">
+                        <div class="filter-menu-title">Status</div>
+                        <div class="filter-menu-list">
+                            <label class="filter-option {% if not selected_status %}is-selected{% endif %}" data-filter-key="status" data-filter-value="">
+                                <input type="radio" name="search_status" {% if not selected_status %}checked{% endif %}>
+                                <span class="circle"></span>
+                                <span class="filter-option-text">All statuses</span>
+                            </label>
+                            {% for status_item in available_statuses %}
+                                <label class="filter-option {% if selected_status == status_item.value %}is-selected{% endif %}" data-filter-key="status" data-filter-value="{{ status_item.value }}">
+                                    <input type="radio" name="search_status" {% if selected_status == status_item.value %}checked{% endif %}>
+                                    <span class="circle"></span>
+                                    <span class="filter-option-text">{{ status_item.label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+                
+            <div class="filter-dropdown filter-group">
+                <button class="filter-btn {% if selected_term %}is-active{% endif %}" type="button">
+                    <span class="filter-btn-text">{{ selected_term|default:'Term' }}</span>
+                    <span class="filter-caret">⌄</span>
+                </button>
+                <div class="filter-menu">
+                    <div class="filter-menu-title">Term</div>
+                    <div class="filter-menu-list term-grid">
+                        <label class="filter-option {% if not selected_term %}is-selected{% endif %}" data-filter-key="term" data-filter-value="">
+                            <input type="radio" name="search_term" {% if not selected_term %}checked{% endif %}>
+                            <span class="circle"></span>
+                            <span class="filter-option-text">All</span>
+                        </label>
+                        {% for term in available_terms %}
+                            <label class="filter-option {% if selected_term == term.value %}is-selected{% endif %}" data-filter-key="term" data-filter-value="{{ term.value }}">
+                                <input type="radio" name="search_term" {% if selected_term == term.value %}checked{% endif %}>
+                                <span class="circle"></span>
+                                <span class="filter-option-text">{{ term.label }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-dropdown filter-group">
+                <button class="filter-btn {% if selected_year %}is-active{% endif %}" type="button">
+                    <span class="filter-btn-text">{{ selected_year|default:'Year' }}</span>
+                    <span class="filter-caret">⌄</span>
+                </button>
+                <div class="filter-menu">
+                    <div class="filter-menu-title">Year</div>
+                    <div class="filter-menu-list compact-grid">
+                        <label class="filter-option {% if not selected_year %}is-selected{% endif %}" data-filter-key="year" data-filter-value="">
+                            <input type="radio" name="search_year" {% if not selected_year %}checked{% endif %}>
+                            <span class="circle"></span>
+                            <span class="filter-option-text">All</span>
+                        </label>
+                        {% for year in available_years %}
+                            <label class="filter-option {% if selected_year|slugify == year.value|slugify %}is-selected{% endif %}" data-filter-key="year" data-filter-value="{{ year.value }}">
+                                <input type="radio" name="search_year" {% if selected_year|slugify == year.value|slugify %}checked{% endif %}>
+                                <span class="circle"></span>
+                                <span class="filter-option-text">{{ year.label }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="clear-text"><a href="{% url 'search' %}">Clear all</a></div>
+        </div>
+        <div style="border-top:1px solid #d7dfe6; margin:0 0 16px;"></div>
+        <div class="results-count">
+            {{ total_count }} results for “{{ search_query|default:'all papers' }}”
+        </div>
+
+        {% if records %}
+            {% for record in records %}
+                <div class="pdf-card" data-record-id="{{ record.id }}" data-url="{% url 'view_paper' record.id record.title|slugify %}" onclick="window.location.href=this.dataset.url">
+                    <div class="pdf-left">
+                        <div class="pdf-thumbnail">
+                            <div class="pdf-label">PDF</div>
+                            {% if record.is_pdf %}
+                                <iframe class="thumbnail-preview-media" src="{{ record.preview_url }}" title="{{ record.title }}" loading="lazy"></iframe>
+                            {% elif record.is_image %}
+                                <img class="thumbnail-preview-media" src="{{ record.preview_url }}" alt="{{ record.title }}">
+                            {% else %}
+                                <div class="thumbnail-content">Preview</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="pdf-info">
+                            <div class="pdf-stats">
+                                <div>{{ record.course.uni.uni_name }}</div>
+                                <div>•</div>
+                                <div>{{ record.course.program }}</div>
+                                <div>•</div>
+                                <div>{{ record.course.semester }}</div>
+                                <div>•</div>
+                                <div>{{ record.course.year }}</div>
+                                <div>•</div>
+                                <div>{{ record.course.session }}</div>
+                            </div>
+
+                            <div class="pdf-title">
+                                {{ record.title }}
+                            </div>
+
+                            <div class="pdf-description">
+                                {{ record.course.course_name }}
+                            </div>
+
+                            <div class="pdf-upload">
+                                Uploaded for <span>{{ record.course.term }}</span> | File: {{ record.file.name|default:'Not available' }}
+                            </div>
+                        </div>
+                    </div>
+                    {% if user_is_admin %}
+                        <div class="pdf-card-right">
+                            <span class="status-bubble {% if record.status == 'Approved' %}is-approved{% else %}is-pending{% endif %}">
+                                {{ record.status }}
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            {% if records.has_other_pages %}
+                <div class="pagination-wrap">
+                    <div class="pagination-pages">
+                        {% if records.has_previous %}
+                            <a class="pagination-btn" href="?{% if page_query_string %}{{ page_query_string }}&{% endif %}page={{ records.previous_page_number }}">Previous Page</a>
+                        {% endif %}
+
+                        {% if show_first_page %}
+                            <a class="pagination-btn" href="?{% if page_query_string %}{{ page_query_string }}&{% endif %}page={{ first_page_number }}">{{ first_page_number }}</a>
+                        {% endif %}
+
+                        {% if show_leading_ellipsis %}
+                            <span class="pagination-ellipsis">...</span>
+                        {% endif %}
+
+                        {% for page_number in page_numbers %}
+                            {% if page_number == records.number %}
+                                <span class="pagination-btn is-current">{{ page_number }}</span>
+                            {% else %}
+                                <a class="pagination-btn" href="?{% if page_query_string %}{{ page_query_string }}&{% endif %}page={{ page_number }}">{{ page_number }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if show_trailing_ellipsis %}
+                            <span class="pagination-ellipsis">...</span>
+                        {% endif %}
+
+                        {% if show_last_page %}
+                            <a class="pagination-btn" href="?{% if page_query_string %}{{ page_query_string }}&{% endif %}page={{ last_page_number }}">{{ last_page_number }}</a>
+                        {% endif %}
+
+                        {% if records.has_next %}
+                            <a class="pagination-btn" href="?{% if page_query_string %}{{ page_query_string }}&{% endif %}page={{ records.next_page_number }}">Next Page</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">No papers match the search results.</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function updateFilter(key, value) {
+        const params = new URLSearchParams(window.location.search);
+
+        if (value) {
+            params.set(key, value);
+        } else {
+            params.delete(key);
+        }
+
+        if (key === 'university' || key === 'semester' || key === 'program') {
+            params.delete('course_name');
+        }
+
+        params.delete('page');
+
+        window.location.search = params.toString();
+    }
+
+    document.querySelectorAll('[data-filter-key]').forEach(option => {
+        option.addEventListener('click', event => {
+            event.preventDefault();
+            const key = event.currentTarget.dataset.filterKey;
+            const value = event.currentTarget.dataset.filterValue;
+            updateFilter(key, value);
+        });
+    });
+</script>
+{% endblock %}

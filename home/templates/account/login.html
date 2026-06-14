@@ -1,0 +1,119 @@
+{% extends "home/base.html" %}
+{% load socialaccount %}
+
+{% block title %}Login | UniPapers{% endblock %}
+
+{% block content %}
+<style>
+    /* Force centering and box look */
+    .auth-shell {
+        min-height: 80vh; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: #f8fafc; /* Fallback color */
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 420px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        padding: 40px;
+        text-align: center;
+    }
+
+    .auth-eyebrow {
+        display: inline-block;
+        padding: 4px 12px;
+        background: #e1f5fe;
+        color: #0288d1;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 15px;
+    }
+
+    .auth-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 10px;
+    }
+
+    .auth-copy {
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 30px;
+        line-height: 1.5;
+    }
+
+    /* THE ICON FIX - Forces the Google Logo to be small */
+    .google-icon {
+        width: 20px !important;
+        height: 20px !important;
+        flex-shrink: 0;
+    }
+
+    .google-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        width: 100%;
+        background: white;
+        border: 1px solid #cbd5e1;
+        padding: 12px;
+        border-radius: 12px;
+        color: #334155;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .google-button:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+    }
+
+    .alert-danger {
+        background: #fee2e2;
+        color: #b91c1c;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+</style>
+
+<div class="auth-shell">
+    <div class="auth-card">
+        <div class="auth-eyebrow">University Students Access Only</div>
+        <h1 class="auth-title">Sign in to UniPapers</h1>
+        <p class="auth-copy">Google accounts ending with ".edu.pk" only!</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert-danger">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <a class="google-button" href="{% provider_login_url 'google' process='login' next=next %}">
+            <svg class="google-icon" viewBox="0 0 48 48">
+                <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.654 32.657 29.195 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.956 3.038l5.657-5.657C34.041 6.053 29.261 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.651-.389-3.917z"/>
+                <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.956 3.038l5.657-5.657C34.041 6.053 29.261 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+                <path fill="#4CAF50" d="M24 44c5.159 0 9.839-1.977 13.355-5.197l-6.18-5.238C29.146 35.091 26.715 36 24 36c-5.174 0-9.619-3.317-11.292-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+                <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a11.99 11.99 0 0 1-4.128 5.565l.003-.002 6.18 5.238C36.98 36.627 40 31.5 40 24c0-1.341-.138-2.651-.389-3.917z"/>
+            </svg>
+            <span>Sign in using Google</span>
+        </a>
+        <p style="margin-top: 20px; font-size: 12px; color: #94a3b8;">By signing in, you agree to our <a href="{% url 'terms_and_conditions' %}" style="color: #3b82f6;">Terms & Conditions</a> and <a href="{% url 'privacy_policy' %}" style="color: #3b82f6;">Privacy Policy</a></p>
+    </div>
+</div>
+{% endblock %}
