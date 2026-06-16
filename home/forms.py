@@ -81,14 +81,13 @@ class SearchValidationForm(forms.Form):
 
         value = value.strip()
 
-        # Accept both SSUET / FAST / full DB name safely
         for full_name, data in AVAILABLE_UNIVERSITIES.items():
             if value in (full_name, data['label'], data['value']):
                 return full_name
 
-        # fallback: match DB directly
-        if Uni.objects.filter(uni_name__iexact=value).exists():
-            return Uni.objects.get(uni_name__iexact=value).uni_name
+        uni = Uni.objects.filter(uni_name__iexact=value).first()
+        if uni:
+            return uni.uni_name
 
         raise forms.ValidationError("Invalid university selected.")
 
