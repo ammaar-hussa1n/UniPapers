@@ -364,6 +364,7 @@ def search(request):
 
     search_text = _clean_text_input(form.cleaned_data.get('q'))
     university = form.cleaned_data.get('university')
+    normalized_university = _normalize_university(university)
     semester = _clean_text_input(form.cleaned_data.get('semester'))
     program = _clean_text_input(form.cleaned_data.get('program'))
     year = _clean_text_input(form.cleaned_data.get('year'))
@@ -371,7 +372,7 @@ def search(request):
     course_name = _clean_text_input(form.cleaned_data.get('course_name'))
     status = _clean_text_input(form.cleaned_data.get('status'))
     
-    available_courses = _build_course_filters(university, semester, program)
+    available_courses = _build_course_filters(normalized_university, semester, program)
     is_admin = request.user.is_superuser
 
     allowed_statuses = {option['value'] for option in (
@@ -395,15 +396,8 @@ def search(request):
         records = records.filter(status__iexact=status)
     if search_text:
         records = records.filter(Q(title__icontains=search_text) | Q(course__course_name__icontains=search_text))
-
-    records = records.filter(course__uni__isnull=False)
-    if university:
-        try:
-            records = records.filter(course__uni__uni_name__iexact=university.strip())
-        except Exception as e:
-            print("UNIVERSITY FILTER ERROR:", e)
-            raise
-
+    if normalized_university:
+        records = records.filter(course__uni__uni_name__iexact=normalized_university)
     if semester:
         records = records.filter(course__semester__iexact=semester)
     if program:
@@ -448,7 +442,7 @@ def search(request):
         'records': records,
         'total_count': total_count,
         'search_query': search_query,
-        'selected_university': university,
+        'selected_university': normalized_university,
         'selected_semester': semester,
         'selected_term': term,
         'selected_program': program,
