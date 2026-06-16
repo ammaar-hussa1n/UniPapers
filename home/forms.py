@@ -1,5 +1,6 @@
 # home/forms.py
 from django import forms
+from home.catalog import AVAILABLE_UNIVERSITIES
 from django.core.validators import MinValueValidator, MaxValueValidator
 # 1. Imported your models directly so the forms can run queries
 from .models import Uni, Course 

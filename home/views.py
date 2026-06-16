@@ -399,7 +399,13 @@ def search(request):
 
     records = records.filter(course__uni__isnull=False)
     if university:
-        records = records.filter(course__uni__uni_name__iexact=university.strip())
+        try:
+            records = records.filter(
+                course__uni__uni_name__iexact=university.strip()
+            )
+        except Exception as e:
+            print("UNIVERSITY FILTER ERROR:", e)
+            raise
 
     if semester:
         records = records.filter(course__semester__iexact=semester)
