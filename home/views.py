@@ -392,16 +392,15 @@ def search(request):
         else Record.objects.select_related('course__uni').filter(status='Approved')
     )
 
-    print("RAW UNIVERSITY:", university)
-    print("NORMALIZED:", normalized_university)
-    print("DB VALUES:", list(Uni.objects.values_list('uni_name', flat=True)))
-
     if is_admin and status:
         records = records.filter(status__iexact=status)
     if search_text:
         records = records.filter(Q(title__icontains=search_text) | Q(course__course_name__icontains=search_text))
+
+    records = records.filter(course__uni__isnull=False)
     if university:
         records = records.filter(course__uni__uni_name__iexact=university.strip())
+        
     if semester:
         records = records.filter(course__semester__iexact=semester)
     if program:
