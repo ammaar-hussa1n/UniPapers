@@ -359,8 +359,7 @@ def search(request):
     form = SearchValidationForm(request.GET)
     if not form.is_valid():
             # If an unexpected field shape or extreme length is injected, drop it cleanly
-            print(form.errors)
-            messages.error(request, form.errors)
+            messages.error(request, "Invalid Search Parameters!")
             return redirect('home')
 
     search_text = _clean_text_input(form.cleaned_data.get('q'))
@@ -400,9 +399,7 @@ def search(request):
     records = records.filter(course__uni__isnull=False)
     if university:
         try:
-            records = records.filter(
-                course__uni__uni_name__iexact=university.strip()
-            )
+            records = records.filter(course__uni__uni_name__iexact=university.strip())
         except Exception as e:
             print("UNIVERSITY FILTER ERROR:", e)
             raise
