@@ -422,7 +422,11 @@ def search(request):
         # If they inject an integer larger than 9999 or trash text, the form catches it
         page_number = 1
     else:
-        page_number = form.cleaned_data.get('page') or 1
+        try:
+            page_number = int(form.cleaned_data.get('page') or 1)
+        except (ValueError, TypeError):
+            page_number = 1
+
     records = paginator.get_page(page_number)
     
     _attach_preview_metadata(records)
