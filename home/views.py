@@ -359,7 +359,8 @@ def search(request):
     form = SearchValidationForm(request.GET)
     if not form.is_valid():
             # If an unexpected field shape or extreme length is injected, drop it cleanly
-            messages.error(request, 'Invalid search parameters!')
+            print(form.errors)
+            messages.error(request, form.errors)
             return redirect('home')
 
     search_text = _clean_text_input(form.cleaned_data.get('q'))
