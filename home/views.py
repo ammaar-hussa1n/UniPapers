@@ -540,7 +540,10 @@ def view(request, paper_id, paper_title=None):
         raise Http404('Past Paper does not exist!')
 
     if request.method == 'POST' and action == 'toggle_save':
-        if not request.user.is_authenticated or record.status != 'Approved':
+        if not request.user.is_authenticated:
+            messages.error(request, 'You must be logged in to save papers!')
+            return redirect('view_paper', paper_id=record.id, paper_title=correct_slug)
+        if record.status != 'Approved':
             messages.error(request, 'Can not save Pending papers!')
             return redirect('view_paper', paper_id=record.id, paper_title=correct_slug)
         
