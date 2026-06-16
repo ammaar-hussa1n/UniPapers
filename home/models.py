@@ -89,6 +89,17 @@ class Record(models.Model):
     def session(self):
         return self.course.session if self.course_id else ''
 
+    @property
+    def title_slug(self):
+        """URL-safe slug for this paper's title.
+
+        Falls back to 'paper' when the title has no slug-able characters
+        (e.g. titles written entirely in non-Latin scripts, or only symbols).
+        The URL patterns use a <str> converter that rejects empty segments,
+        so an empty slug would otherwise raise NoReverseMatch (HTTP 500).
+        """
+        return slugify(self.title) or 'paper'
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         

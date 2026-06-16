@@ -783,7 +783,7 @@
                         <span class="action-arrow">↗</span>
                     </button>
                 {% endif %}
-                <form method="post" action="{% url 'view_paper' record.id record.title|slugify %}" style="display:block;">
+                <form method="post" action="{% url 'view_paper' record.id record.title_slug %}" style="display:block;">
                     {% csrf_token %}
                     <button class="action-btn action-save" type="submit" name="action" value="toggle_save">
                         <span class="action-left">

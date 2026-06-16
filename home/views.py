@@ -339,7 +339,7 @@ def _prepare_record_preview(record):
     record.file_ext = file_ext
     record.is_pdf = file_ext == '.pdf'
     record.is_image = file_ext in {'.png', '.jpg', '.jpeg', '.webp', '.bmp'}
-    record.preview_url = reverse('paper_preview', args=[record.id, slugify(record.title)])
+    record.preview_url = reverse('paper_preview', args=[record.id, record.title_slug])
     return record
 
 def _attach_preview_metadata(records):
@@ -500,13 +500,13 @@ def view(request, paper_id, paper_title=None):
         form = ReportPaperForm(request.POST)
         if not form.is_valid():
             messages.error(request, "Invalid Action!!")
-            return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
+            return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
         
         reported_reason = form.cleaned_data.get('reported_reason')
 
         if reported_reason not in REPORT_REASON_CHOICES:
             messages.error(request, 'Please select a valid report reason!')
-            return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
+            return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
     
     ###########Correct##### no error##### dont UNDO now  safety check point WO HOO no error only security now
                 ##3######5232##oA###i 8812 #no 
@@ -514,19 +514,19 @@ def view(request, paper_id, paper_title=None):
 
         if not request.user.is_authenticated:
             messages.error(request, 'You must be logged in to report a paper!')
-            return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
+            return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
 
         report_line = f'{reported_reason} - reported by {request.user.get_username()}'
 
         existing_reports = Report.objects.filter(record=record)
         if existing_reports.filter(user=request.user, message=report_line).exists():
             messages.error(request, 'You have already reported this paper!')
-            return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
+            return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
 
         user_report_count = existing_reports.filter(user=request.user).count()
         if user_report_count >= 3:
             messages.error(request, 'Maximum reports reached for this paper!')
-            return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
+            return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
 
         Report.objects.create(
             record=record,
@@ -535,9 +535,9 @@ def view(request, paper_id, paper_title=None):
         )
 
         messages.success(request, 'Report has been submitted for admin review!')
-        return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
+        return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
 
-    correct_slug = slugify(record.title)
+    correct_slug = record.title_slug
     if paper_title is None or correct_slug != paper_title:
         raise Http404('Past Paper does not exist!')
 
@@ -582,7 +582,7 @@ def paper_preview(request, paper_id, paper_title=None):
     if record.status != 'Approved' and not (is_admin or is_owner):
         raise Http404('Past Paper does not exist!')
 
-    correct_slug = slugify(record.title)
+    correct_slug = record.title_slug
     if paper_title is None or correct_slug != paper_title:
         raise Http404('Past Paper does not exist!')
 

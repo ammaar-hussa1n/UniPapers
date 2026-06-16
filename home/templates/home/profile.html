@@ -809,7 +809,7 @@
     </div>
     {% if records %}
         {% for record in records %}
-            <div class="pdf-card" data-url="{% url 'view_paper' record.id record.title|slugify %}" onclick="window.location.href=this.dataset.url">
+            <div class="pdf-card" data-url="{% url 'view_paper' record.id record.title_slug %}" onclick="window.location.href=this.dataset.url">
                 <div class="pdf-left">
                     <div class="pdf-thumbnail">
                         <div class="pdf-label">PDF</div>
