@@ -81,7 +81,10 @@ class SearchValidationForm(forms.Form):
 
         value = value.strip()
 
-        uni_exists = Uni.objects.filter(uni_name__iexact=value).exists()
+        uni_exists = Uni.objects.filter(
+            Q(uni_name__iexact=value) |
+            Q(uni_name__iexact=AVAILABLE_UNIVERSITIES.get(value, {}).get('value', ''))
+        ).exists()
 
         if not uni_exists:
             raise forms.ValidationError("Invalid university selected.")
