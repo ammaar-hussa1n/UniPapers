@@ -371,7 +371,7 @@ def search(request):
     course_name = _clean_text_input(form.cleaned_data.get('course_name'))
     status = _clean_text_input(form.cleaned_data.get('status'))
     
-    normalized_university = university.strip() if university else None
+    normalized_university = university
     available_courses = _build_course_filters(normalized_university, semester, program)
     is_admin = request.user.is_superuser
 
@@ -391,6 +391,10 @@ def search(request):
         if is_admin
         else Record.objects.select_related('course__uni').filter(status='Approved')
     )
+
+    print("RAW UNIVERSITY:", university)
+    print("NORMALIZED:", normalized_university)
+    print("DB VALUES:", list(Uni.objects.values_list('uni_name', flat=True)))
 
     if is_admin and status:
         records = records.filter(status__iexact=status)
