@@ -50,9 +50,14 @@ class AcademicUploadForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Dynamically pulls unique programs currently saved inside your Course records
-        distinct_programs = Course.objects.values_list('program', flat=True).distinct().order_by('program')
-        self.fields['program'].choices = [('', 'Select Program')] + [(p, p) for p in distinct_programs if p]
+
+        programs = set()
+        for uni_programs in AVAILABLE_PROGRAMS.values():
+            programs.update(uni_programs)
+
+        self.fields['program'].choices = [('', 'Select Program')] + [
+            (p, p) for p in sorted(programs)
+        ]
 
 
 class SearchValidationForm(forms.Form):
@@ -71,9 +76,14 @@ class SearchValidationForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Dynamically builds dropdown choices from unique entries in your database
-        distinct_programs = Course.objects.values_list('program', flat=True).distinct().order_by('program')
-        self.fields['program'].choices = [('', 'All Programs')] + [(p, p) for p in distinct_programs if p]
+
+        programs = set()
+        for uni_programs in AVAILABLE_PROGRAMS.values():
+            programs.update(uni_programs)
+
+        self.fields['program'].choices = [('', 'Select Program')] + [
+            (p, p) for p in sorted(programs)
+        ]
 
     def clean_university(self):
         value = self.cleaned_data.get('university')
