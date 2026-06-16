@@ -445,7 +445,7 @@ def search(request):
         'records': records,
         'total_count': total_count,
         'search_query': search_query,
-        'selected_university': university,
+        'selected_university': university,#ok
         'selected_semester': semester,
         'selected_term': term,
         'selected_program': program,
