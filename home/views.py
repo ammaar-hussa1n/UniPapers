@@ -367,7 +367,7 @@ def search(request):
     university = form.cleaned_data.get('university')
     semester = _clean_text_input(form.cleaned_data.get('semester'))
     program = _clean_text_input(form.cleaned_data.get('program'))
-    year = _clean_text_input(form.cleaned_data.get('year'))
+    year = form.cleaned_data.get('year')
     term = _clean_text_input(form.cleaned_data.get('term'))
     course_name = _clean_text_input(form.cleaned_data.get('course_name'))
     status = _clean_text_input(form.cleaned_data.get('status'))
@@ -406,7 +406,7 @@ def search(request):
     if program:
         records = records.filter(course__program__iexact=program)
     if year:
-        records = records.filter(course__year__iexact=year)
+        records = records.filter(course__year=year)
     if term:
         records = records.filter(course__term__iexact=term)
     if course_name:
