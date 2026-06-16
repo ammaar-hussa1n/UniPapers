@@ -42,7 +42,7 @@ class AcademicUploadForm(forms.Form):
     term = forms.ChoiceField(choices=TERM_CHOICES, required=True)
     
     # 2. Changed university to pull directly from your Uni database table
-    university = forms.ChoiceField(required=False)
+    university = forms.CharField(required=False, strip=True)
     
     # 3. Changed program to start blank and populate dynamically
     program = forms.ChoiceField(choices=[], required=True)
@@ -58,7 +58,7 @@ class SearchValidationForm(forms.Form):
     q = forms.CharField(max_length=100, required=False, strip=True)
     
     # Restored Uni reference (Fixed NameError)
-    university = forms.ChoiceField(required=False)
+    university = forms.CharField(required=False, strip=True)
     semester = forms.ChoiceField(choices=[('', 'All Semesters')] + SEMESTER_CHOICES, required=False)
     year = forms.IntegerField(validators=[MinValueValidator(2000), MaxValueValidator(2030)], required=False)
     term = forms.ChoiceField(choices=[('', 'All Terms')] + TERM_CHOICES, required=False)
@@ -73,8 +73,6 @@ class SearchValidationForm(forms.Form):
         # Dynamically builds dropdown choices from unique entries in your database
         distinct_programs = Course.objects.values_list('program', flat=True).distinct().order_by('program')
         self.fields['program'].choices = [('', 'All Programs')] + [(p, p) for p in distinct_programs if p]
-        distinct_unis = Uni.objects.values_list('uni_name', flat=True).distinct()
-        self.fields['university'].choices = [('', 'All Universities')] + [(u, u) for u in distinct_unis]
 
     def clean_university(self):
         value = self.cleaned_data.get('university')
