@@ -42,10 +42,7 @@ class AcademicUploadForm(forms.Form):
     term = forms.ChoiceField(choices=TERM_CHOICES, required=True)
     
     # 2. Changed university to pull directly from your Uni database table
-    university = forms.ChoiceField(
-        choices=[],
-        required=False
-    )
+    university = forms.ChoiceField(required=False)
     
     # 3. Changed program to start blank and populate dynamically
     program = forms.ChoiceField(choices=[], required=True)
@@ -61,10 +58,7 @@ class SearchValidationForm(forms.Form):
     q = forms.CharField(max_length=100, required=False, strip=True)
     
     # Restored Uni reference (Fixed NameError)
-    university = forms.ChoiceField(
-        choices=[],
-        required=False
-    )
+    university = forms.ChoiceField(required=False)
     semester = forms.ChoiceField(choices=[('', 'All Semesters')] + SEMESTER_CHOICES, required=False)
     year = forms.IntegerField(validators=[MinValueValidator(2000), MaxValueValidator(2030)], required=False)
     term = forms.ChoiceField(choices=[('', 'All Terms')] + TERM_CHOICES, required=False)
@@ -81,6 +75,20 @@ class SearchValidationForm(forms.Form):
         self.fields['program'].choices = [('', 'All Programs')] + [(p, p) for p in distinct_programs if p]
         distinct_unis = Uni.objects.values_list('uni_name', flat=True).distinct()
         self.fields['university'].choices = [('', 'All Universities')] + [(u, u) for u in distinct_unis]
+
+    def clean_university(self):
+        value = self.cleaned_data.get('university')
+        if not value:
+            return value
+
+        value = value.strip()
+
+        uni_exists = Uni.objects.filter(uni_name__iexact=value).exists()
+
+        if not uni_exists:
+            raise forms.ValidationError("Invalid university selected.")
+
+        return value
 
     page = forms.IntegerField(required=False, min_value=1, max_value=999, initial=1)
     def clean_page(self):
