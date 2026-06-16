@@ -371,7 +371,7 @@ def search(request):
     course_name = _clean_text_input(form.cleaned_data.get('course_name'))
     status = _clean_text_input(form.cleaned_data.get('status'))
     
-    normalized_university = _normalize_university(university) if university else None
+    normalized_university = _normalize_university_input(university) if university else None
     available_courses = _build_course_filters(normalized_university, semester, program)
     is_admin = request.user.is_superuser
 
