@@ -81,15 +81,16 @@ class SearchValidationForm(forms.Form):
 
         value = value.strip()
 
-        uni_exists = Uni.objects.filter(
-            Q(uni_name__iexact=value) |
-            Q(uni_name__iexact=AVAILABLE_UNIVERSITIES.get(value, {}).get('value', ''))
-        ).exists()
+        # Accept both SSUET / FAST / full DB name safely
+        for full_name, data in AVAILABLE_UNIVERSITIES.items():
+            if value in (full_name, data['label'], data['value']):
+                return full_name
 
-        if not uni_exists:
-            raise forms.ValidationError("Invalid university selected.")
+        # fallback: match DB directly
+        if Uni.objects.filter(uni_name__iexact=value).exists():
+            return Uni.objects.get(uni_name__iexact=value).uni_name
 
-        return value
+        raise forms.ValidationError("Invalid university selected.")
 
     page = forms.IntegerField(required=False, min_value=1, max_value=999, initial=1)
     def clean_page(self):
