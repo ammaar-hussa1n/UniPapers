@@ -427,7 +427,7 @@ def search(request):
 
     records = paginator.get_page(page_number)
     
-    _attach_preview_metadata(records)
+    #_attach_preview_metadata(records)
 
     pagination = _build_compact_page_window(paginator, records.number)
 
