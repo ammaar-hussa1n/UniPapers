@@ -2,12 +2,9 @@ from pathlib import Path
 import re
 import html
 import os
-import cloudinary.uploader
 from django.conf import settings
 import uuid
 import mimetypes
-import requests
-from urllib.parse import urlsplit
 from django.http import FileResponse, Http404, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.clickjacking import xframe_options_sameorigin
@@ -26,6 +23,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django_ratelimit.decorators import ratelimit
 from .models import *
 from PIL import Image
+import requests
 import io
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.exceptions import ValidationError
@@ -192,10 +190,9 @@ def _validate_uploaded_file(uploaded_file):
     try:
         detected_mime = _detect_uploaded_file_mime(uploaded_file)
     except Exception:
-        detected_mime = None
+        return 'Could not verify file integrity.'
 
-
-    if detected_mime and (detected_mime not in ALLOWED_UPLOAD_MIME_TYPES):
+    if detected_mime not in ALLOWED_UPLOAD_MIME_TYPES:
         return 'Unsupported file type.'
 
     return None
@@ -206,12 +203,12 @@ def _detect_uploaded_file_mime(uploaded_file):
     uploaded_file.seek(0)
 
     if magic is None:
-        return None  # fallback instead of crashing
+        raise RuntimeError(
+            "'python-magic' is required for file validation. "
+            "Ensure libmagic is installed on the operating system."
+        )
 
-    try:
-        return magic.from_buffer(initial_bytes, mime=True)
-    except Exception:
-        return None
+    return magic.from_buffer(initial_bytes, mime=True)
 
 def _is_image_uploaded_file(uploaded_file):
     detected_mime = _detect_uploaded_file_mime(uploaded_file)
@@ -243,77 +240,6 @@ def _get_multi_image_attachment_paths(record):
 
     return attachment_paths
 
-def _is_remote_url(name):
-    """True when a stored file value is already a full http(s) URL.
-
-    Uploads store Cloudinary's `secure_url` directly on the FileField, so the
-    stored "name" is a delivery URL rather than a storage key/public_id.
-    """
-    return bool(name) and (name.startswith('http://') or name.startswith('https://'))
-
-
-def _file_value(file_field):
-    """Return the stored string for a file, handling both field types.
-
-    `Record.file` is a URLField (a plain `str` holding the Cloudinary URL),
-    while `PaperAttachment.file` is a FileField (a FieldFile whose `.name`
-    holds the URL). This normalises both to the underlying string.
-    """
-    if not file_field:
-        return ''
-    return getattr(file_field, 'name', file_field)
-
-
-def _resolve_file_url(file_field):
-    """Return a usable URL for a stored file, whatever the field type.
-
-    Uploads store Cloudinary's full delivery URL, so when the value already is
-    an http(s) URL we use it as-is. Only a genuine FileField storage key is
-    passed back through the backend's `.url`.
-    """
-    value = _file_value(file_field)
-    if _is_remote_url(value):
-        return value
-    if not value:
-        return ''
-    try:
-        return file_field.url
-    except AttributeError:
-        return value
-
-
-def _file_display_name(file_field):
-    """Return a human/file basename for a stored file (e.g. 'paper.pdf')."""
-    value = _file_value(file_field)
-    if not value:
-        return ''
-    path = urlsplit(value).path if _is_remote_url(value) else value
-    return Path(path).name
-
-
-def _file_kind_from_name(name):
-    """Classify a stored file as 'pdf', 'image', or 'other'.
-
-    Works for local storage keys and for Cloudinary delivery URLs, which may
-    omit the file extension for raw (non-image) uploads — in that case we fall
-    back to the resource path (`/raw/upload/` vs `/image/upload/`).
-    """
-    if not name:
-        return 'other'
-    path = urlsplit(name).path if _is_remote_url(name) else name
-    ext = Path(path).suffix.lower()
-    image_exts = {'.png', '.jpg', '.jpeg', '.webp', '.bmp'}
-    if ext in image_exts:
-        return 'image'
-    if ext == '.pdf':
-        return 'pdf'
-    if '/image/upload/' in name:
-        return 'image'
-    if '/raw/upload/' in name:
-        return 'pdf'
-    return 'other'
-
-
 def _get_multi_image_attachments(record):
     """
     Fetches all associated image files for a specific record.
@@ -324,9 +250,9 @@ def _get_multi_image_attachments(record):
     # 1. Append the primary record file as Page 1
     if record.file:
         attachments_data.append({
-            'path': _file_value(record.file),
-            'url': _resolve_file_url(record.file),
-            'name': _file_display_name(record.file),
+            'path': record.file.name,
+            'url': record.file.url,
+            'name': Path(record.file.name).name,
             'title': record.title,
         })
 
@@ -337,9 +263,9 @@ def _get_multi_image_attachments(record):
     for attachment in secondary_attachments:
         if attachment.file:
             attachments_data.append({
-                'path': _file_value(attachment.file),
-                'url': _resolve_file_url(attachment.file),
-                'name': _file_display_name(attachment.file),
+                'path': attachment.file.name,
+                'url': attachment.file.url,
+                'name': Path(attachment.file.name).name,
                 'title': record.title,
             })
 
@@ -408,29 +334,13 @@ def _build_compact_page_window(paginator, current_page_number, window_size=9):
     }
 
 def _prepare_record_preview(record):
-    """Attach preview flags safely without crashing on broken files."""
-
-    # ---- SAFE FILE NAME ----
-    # Record.file is a URLField (str); attachments use FileField. Normalise both.
-    file_name = _file_value(record.file)
-
-    file_ext = Path(urlsplit(file_name).path).suffix.lower() if file_name else ''
-
-    kind = _file_kind_from_name(file_name)
+    """Attach preview flags and excerpt text used across paper cards and the detail page."""
+    file_name = record.file.name if record.file else ''
+    file_ext = Path(file_name).suffix.lower()
     record.file_ext = file_ext
-    record.file_basename = _file_display_name(record.file)
-    record.is_pdf = kind == 'pdf'
-    record.is_image = kind == 'image'
-
-    # ---- SAFE URL GENERATION ----
-    try:
-        record.preview_url = reverse(
-            'paper_preview',
-            args=[record.id, record.title_slug]
-        )
-    except Exception:
-        record.preview_url = None
-
+    record.is_pdf = file_ext == '.pdf'
+    record.is_image = file_ext in {'.png', '.jpg', '.jpeg', '.webp', '.bmp'}
+    record.preview_url = reverse('paper_preview', args=[record.id, slugify(record.title)])
     return record
 
 def _attach_preview_metadata(records):
@@ -450,12 +360,11 @@ def search(request):
     form = SearchValidationForm(request.GET)
     if not form.is_valid():
             # If an unexpected field shape or extreme length is injected, drop it cleanly
-            messages.error(request, "Invalid Search Parameters!")
+            messages.error(request, 'Invalid search parameters!')
             return redirect('home')
 
     search_text = _clean_text_input(form.cleaned_data.get('q'))
-    university = form.cleaned_data.get('university')
-    normalized_university = _normalize_university(university)
+    university = _normalize_university_input(form.cleaned_data.get('university'))
     semester = _clean_text_input(form.cleaned_data.get('semester'))
     program = _clean_text_input(form.cleaned_data.get('program'))
     year = _clean_text_input(form.cleaned_data.get('year'))
@@ -463,6 +372,7 @@ def search(request):
     course_name = _clean_text_input(form.cleaned_data.get('course_name'))
     status = _clean_text_input(form.cleaned_data.get('status'))
     
+    normalized_university = _normalize_university(university)
     available_courses = _build_course_filters(normalized_university, semester, program)
     is_admin = request.user.is_superuser
 
@@ -509,14 +419,10 @@ def search(request):
         # If they inject an integer larger than 9999 or trash text, the form catches it
         page_number = 1
     else:
-        try:
-            page_number = int(form.cleaned_data.get('page') or 1)
-        except (ValueError, TypeError):
-            page_number = 1
-
+        page_number = form.cleaned_data.get('page') or 1
     records = paginator.get_page(page_number)
     
-    #_attach_preview_metadata(records)
+    _attach_preview_metadata(records)
 
     pagination = _build_compact_page_window(paginator, records.number)
 
@@ -588,13 +494,13 @@ def view(request, paper_id, paper_title=None):
         form = ReportPaperForm(request.POST)
         if not form.is_valid():
             messages.error(request, "Invalid Action!!")
-            return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
+            return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
         
         reported_reason = form.cleaned_data.get('reported_reason')
 
         if reported_reason not in REPORT_REASON_CHOICES:
             messages.error(request, 'Please select a valid report reason!')
-            return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
+            return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
     
     ###########Correct##### no error##### dont UNDO now  safety check point WO HOO no error only security now
                 ##3######5232##oA###i 8812 #no 
@@ -602,19 +508,19 @@ def view(request, paper_id, paper_title=None):
 
         if not request.user.is_authenticated:
             messages.error(request, 'You must be logged in to report a paper!')
-            return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
+            return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
 
         report_line = f'{reported_reason} - reported by {request.user.get_username()}'
 
         existing_reports = Report.objects.filter(record=record)
         if existing_reports.filter(user=request.user, message=report_line).exists():
             messages.error(request, 'You have already reported this paper!')
-            return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
+            return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
 
         user_report_count = existing_reports.filter(user=request.user).count()
         if user_report_count >= 3:
             messages.error(request, 'Maximum reports reached for this paper!')
-            return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
+            return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
 
         Report.objects.create(
             record=record,
@@ -623,17 +529,14 @@ def view(request, paper_id, paper_title=None):
         )
 
         messages.success(request, 'Report has been submitted for admin review!')
-        return redirect('view_paper', paper_id=record.id, paper_title=record.title_slug)
+        return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
 
-    correct_slug = record.title_slug
+    correct_slug = slugify(record.title)
     if paper_title is None or correct_slug != paper_title:
         raise Http404('Past Paper does not exist!')
 
     if request.method == 'POST' and action == 'toggle_save':
-        if not request.user.is_authenticated:
-            messages.error(request, 'You must be logged in to save papers!')
-            return redirect('view_paper', paper_id=record.id, paper_title=correct_slug)
-        if record.status != 'Approved':
+        if not request.user.is_authenticated or record.status != 'Approved':
             messages.error(request, 'Can not save Pending papers!')
             return redirect('view_paper', paper_id=record.id, paper_title=correct_slug)
         
@@ -641,13 +544,12 @@ def view(request, paper_id, paper_title=None):
         return redirect('view_paper', paper_id=record.id, paper_title=correct_slug)
 
     _prepare_record_preview(record)
-    file_name = _file_display_name(record.file)
+    file_name = Path(record.file.name).name if record.file else ''
     image_attachments = _get_multi_image_attachments(record)
 
     return render(request, 'home/view_paper.html', {
         'record': record,
         'file_name': file_name,
-        'file_url': _resolve_file_url(record.file),
         'is_pdf': record.is_pdf,
         'is_image': record.is_image,
         'image_attachments': image_attachments,
@@ -674,40 +576,13 @@ def paper_preview(request, paper_id, paper_title=None):
     if record.status != 'Approved' and not (is_admin or is_owner):
         raise Http404('Past Paper does not exist!')
 
-    correct_slug = record.title_slug
+    correct_slug = slugify(record.title)
     if paper_title is None or correct_slug != paper_title:
         raise Http404('Past Paper does not exist!')
 
-    file_ref = _file_value(record.file)
-    if not file_ref:
-        raise Http404('Past Paper does not exist!')
-
-    # Files are stored as Cloudinary delivery URLs. Proxy the bytes through this
-    # same-origin endpoint (the front-end fetches it under CSP connect-src 'self'),
-    # rather than passing a full URL back to the storage backend (which fails).
-    if _is_remote_url(file_ref):
-        try:
-            upstream = requests.get(file_ref, stream=True, timeout=20)
-        except requests.RequestException:
-            raise Http404('Past Paper does not exist!')
-        if upstream.status_code != 200:
-            raise Http404('Past Paper does not exist!')
-        upstream.raw.decode_content = True
-        content_type = (
-            upstream.headers.get('Content-Type')
-            or mimetypes.guess_type(file_ref)[0]
-            or 'application/octet-stream'
-        )
-        response = FileResponse(upstream.raw, content_type=content_type)
-    else:
-        # Local FileField fallback (only attachments use a real FileField).
-        opener = getattr(record.file, 'open', None)
-        if opener is None:
-            raise Http404('Past Paper does not exist!')
-        content_type, _ = mimetypes.guess_type(file_ref)
-        response = FileResponse(opener('rb'), content_type=content_type or 'application/octet-stream')
-
-    response['Content-Disposition'] = f'inline; filename="{Path(urlsplit(file_ref).path).name}"'
+    content_type, _ = mimetypes.guess_type(record.file.name)
+    response = FileResponse(record.file.open('rb'), content_type=content_type or 'application/octet-stream')
+    response['Content-Disposition'] = f'inline; filename="{Path(record.file.name).name}"'
     return response
 
 @ratelimit(key='user_or_ip', rate='100/m', block=True)
@@ -758,7 +633,7 @@ def upload(request):
             messages.error(request, f"Form validation failed : {first_error}")
             return redirect('upload')
 
-        university = form.cleaned_data.get('university')
+        university = _normalize_university_input(form.cleaned_data.get('university'))
         year = _clean_text_input(form.cleaned_data.get('year'))
         title = _clean_text_input(form.cleaned_data.get('title'))
         semester = _clean_text_input(form.cleaned_data.get('semester'))
@@ -835,11 +710,7 @@ def upload(request):
                 if _is_image_uploaded_file(primary_file):
                     primary_file = compress_image(primary_file)
 
-                upload_result = cloudinary.uploader.upload(
-                    primary_file,
-                    resource_type="raw" if not _is_image_uploaded_file(primary_file) else "image"
-                )
-                record.file = upload_result["secure_url"]
+                record.file.save(primary_storage_name, primary_file, save=False)
                 record.save()
 
                 # --- ALIGNED STORE LOCATION FOR EXTRA IMAGES ---
@@ -851,12 +722,7 @@ def upload(request):
                             paper_file = compress_image(paper_file)
 
                         attachment = PaperAttachment(record=record)
-
-                        upload_result = cloudinary.uploader.upload(
-                            paper_file,
-                            resource_type="raw" if not _is_image_uploaded_file(paper_file) else "image"
-                        )
-                        attachment.file = upload_result["secure_url"]
+                        attachment.file.save(storage_name, paper_file, save=False)
                         attachment.save()
 
             messages.success(request, 'Successfully Uploaded! It will appear once approved by an admin.')
@@ -978,11 +844,9 @@ def delete_record(request, paper_id):
     if request.method != 'POST':
         return redirect('profile')
 
-    # Record.file is a URLField (Cloudinary URL string), so there is no storage
-    # file object to delete; only PaperAttachment.file is a real FileField.
-    for attachment in record.attachments.all():
-        if attachment.file:
-            attachment.file.delete(save=False)
+    if record.file:
+        _delete_multi_image_attachments(record)
+        record.file.delete(save=False)
     record.delete()
 
     messages.success(request, 'Paper deleted successfully.')
