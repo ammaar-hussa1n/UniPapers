@@ -917,7 +917,7 @@
 </div>
 
 <script>
-    const fileUrl = "{{ record.file.url }}";
+    const fileUrl = "{{ file_url|escapejs }}";
     const previewUrl = "{{ preview_url|escapejs }}";
     // CHANGED: Pulled straight from the record field context 
     const fileName = "{{ record.file.name|escapejs }}";

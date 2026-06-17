@@ -6,6 +6,8 @@ import cloudinary.uploader
 from django.conf import settings
 import uuid
 import mimetypes
+import requests
+from urllib.parse import urlsplit
 from django.http import FileResponse, Http404, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.clickjacking import xframe_options_sameorigin
@@ -241,6 +243,57 @@ def _get_multi_image_attachment_paths(record):
 
     return attachment_paths
 
+def _is_remote_url(name):
+    """True when a stored file value is already a full http(s) URL.
+
+    Uploads store Cloudinary's `secure_url` directly on the FileField, so the
+    stored "name" is a delivery URL rather than a storage key/public_id.
+    """
+    return bool(name) and (name.startswith('http://') or name.startswith('https://'))
+
+
+def _resolve_file_url(filefield):
+    """Return a usable URL for a FileField regardless of how the value is stored.
+
+    Records uploaded via Cloudinary store the full delivery URL; older/local
+    records store a storage key. Passing a full URL back through the storage
+    backend's `.url`/`.open` is what triggers the 500 on View Paper, so use the
+    stored URL directly when it already is one.
+    """
+    if not filefield:
+        return ''
+    name = filefield.name
+    if _is_remote_url(name):
+        return name
+    try:
+        return filefield.url
+    except Exception:
+        return ''
+
+
+def _file_kind_from_name(name):
+    """Classify a stored file as 'pdf', 'image', or 'other'.
+
+    Works for local storage keys and for Cloudinary delivery URLs, which may
+    omit the file extension for raw (non-image) uploads — in that case we fall
+    back to the resource path (`/raw/upload/` vs `/image/upload/`).
+    """
+    if not name:
+        return 'other'
+    path = urlsplit(name).path if _is_remote_url(name) else name
+    ext = Path(path).suffix.lower()
+    image_exts = {'.png', '.jpg', '.jpeg', '.webp', '.bmp'}
+    if ext in image_exts:
+        return 'image'
+    if ext == '.pdf':
+        return 'pdf'
+    if '/image/upload/' in name:
+        return 'image'
+    if '/raw/upload/' in name:
+        return 'pdf'
+    return 'other'
+
+
 def _get_multi_image_attachments(record):
     """
     Fetches all associated image files for a specific record.
@@ -252,7 +305,7 @@ def _get_multi_image_attachments(record):
     if record.file:
         attachments_data.append({
             'path': record.file.name,
-            'url': record.file.url,
+            'url': _resolve_file_url(record.file),
             'name': Path(record.file.name).name,
             'title': record.title,
         })
@@ -265,7 +318,7 @@ def _get_multi_image_attachments(record):
         if attachment.file:
             attachments_data.append({
                 'path': attachment.file.name,
-                'url': attachment.file.url,
+                'url': _resolve_file_url(attachment.file),
                 'name': Path(attachment.file.name).name,
                 'title': record.title,
             })
@@ -345,9 +398,10 @@ def _prepare_record_preview(record):
 
     file_ext = Path(file_name).suffix.lower() if file_name else ''
 
+    kind = _file_kind_from_name(file_name)
     record.file_ext = file_ext
-    record.is_pdf = file_ext == '.pdf'
-    record.is_image = file_ext in {'.png', '.jpg', '.jpeg', '.webp', '.bmp'}
+    record.is_pdf = kind == 'pdf'
+    record.is_image = kind == 'image'
 
     # ---- SAFE URL GENERATION ----
     try:
@@ -574,6 +628,7 @@ def view(request, paper_id, paper_title=None):
     return render(request, 'home/view_paper.html', {
         'record': record,
         'file_name': file_name,
+        'file_url': _resolve_file_url(record.file),
         'is_pdf': record.is_pdf,
         'is_image': record.is_image,
         'image_attachments': image_attachments,
@@ -604,9 +659,32 @@ def paper_preview(request, paper_id, paper_title=None):
     if paper_title is None or correct_slug != paper_title:
         raise Http404('Past Paper does not exist!')
 
-    content_type, _ = mimetypes.guess_type(record.file.name)
-    response = FileResponse(record.file.open('rb'), content_type=content_type or 'application/octet-stream')
-    response['Content-Disposition'] = f'inline; filename="{Path(record.file.name).name}"'
+    file_ref = record.file.name if record.file else ''
+    if not file_ref:
+        raise Http404('Past Paper does not exist!')
+
+    # Files are stored as Cloudinary delivery URLs. Proxy the bytes through this
+    # same-origin endpoint (the front-end fetches it under CSP connect-src 'self'),
+    # rather than passing a full URL back to the storage backend (which fails).
+    if _is_remote_url(file_ref):
+        try:
+            upstream = requests.get(file_ref, stream=True, timeout=20)
+        except requests.RequestException:
+            raise Http404('Past Paper does not exist!')
+        if upstream.status_code != 200:
+            raise Http404('Past Paper does not exist!')
+        upstream.raw.decode_content = True
+        content_type = (
+            upstream.headers.get('Content-Type')
+            or mimetypes.guess_type(file_ref)[0]
+            or 'application/octet-stream'
+        )
+        response = FileResponse(upstream.raw, content_type=content_type)
+    else:
+        content_type, _ = mimetypes.guess_type(file_ref)
+        response = FileResponse(record.file.open('rb'), content_type=content_type or 'application/octet-stream')
+
+    response['Content-Disposition'] = f'inline; filename="{Path(urlsplit(file_ref).path).name}"'
     return response
 
 @ratelimit(key='user_or_ip', rate='100/m', block=True)
