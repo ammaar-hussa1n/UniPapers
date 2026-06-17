@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 import html
 import os
+import cloudinary.uploader
 from django.conf import settings
 import uuid
 import mimetypes
@@ -717,7 +718,11 @@ def upload(request):
                 if _is_image_uploaded_file(primary_file):
                     primary_file = compress_image(primary_file)
 
-                record.file.save(primary_storage_name, primary_file, save=False)
+                upload_result = cloudinary.uploader.upload(
+                    primary_file,
+                    resource_type="raw" if not _is_image_uploaded_file(primary_file) else "image"
+                )
+                record.file = upload_result["secure_url"]
                 record.save()
 
                 # --- ALIGNED STORE LOCATION FOR EXTRA IMAGES ---
@@ -729,7 +734,12 @@ def upload(request):
                             paper_file = compress_image(paper_file)
 
                         attachment = PaperAttachment(record=record)
-                        attachment.file.save(storage_name, paper_file, save=False)
+
+                        upload_result = cloudinary.uploader.upload(
+                            paper_file,
+                            resource_type="raw" if not _is_image_uploaded_file(paper_file) else "image"
+                        )
+                        attachment.file = upload_result["secure_url"]
                         attachment.save()
 
             messages.success(request, 'Successfully Uploaded! It will appear once approved by an admin.')
