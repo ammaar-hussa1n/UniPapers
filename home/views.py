@@ -669,6 +669,7 @@ def upload(request):
                     return redirect('upload')
 
         # General file security configuration checks (size, extension whitelists)
+        # ... Your validation loop runs here ...
         for paper_file in paper_files:
             file_error = _validate_uploaded_file(paper_file)
             if file_error:
@@ -720,6 +721,9 @@ def upload(request):
                         attachment = PaperAttachment(record=record)
                         attachment.file.save(storage_name, paper_file, save=False)
                         attachment.save()
+
+            messages.success(request, 'Successfully Uploaded! It will appear once approved by an admin.')
+            return redirect('home')
             
         except Exception as exc:
             print(f"--- UPLOAD CRASH DETAILS: {exc} ---") 
