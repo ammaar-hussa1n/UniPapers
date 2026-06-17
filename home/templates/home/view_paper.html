@@ -1039,29 +1039,24 @@
             pdfObjectUrl = URL.createObjectURL(blob);
             pdfRenderer.src = pdfObjectUrl;
         } catch (error) {
-            // 1. Create the container div securely
+            pdfRenderer.src = "";
+
             const fallback = document.createElement('div');
             fallback.className = 'file-fallback';
-            
-            // 2. Add the initial warning text safely as text content
-            const textNode = document.createTextNode('PDF preview could not be rendered. ');
-            fallback.appendChild(textNode);
 
-            // 3. Create the download link securely using element properties
+            fallback.appendChild(document.createTextNode(
+                'PDF preview could not be rendered. '
+            ));
+
             const downloadLink = document.createElement('a');
-            downloadLink.href = fileUrl;                            // Safe property assignment
-            downloadLink.textContent = 'Download the file';          // Explicitly treated as plain text
-            downloadLink.target = '_blank';                         // Good practice for accessibility
-            
-            // 4. Add the rest of the text trailing the link
-            const trailingTextNode = document.createTextNode(' to open it directly.');
+            downloadLink.href = fileUrl;
+            downloadLink.textContent = 'Download the file';
+            downloadLink.target = '_blank';
 
-            // 5. Build the complete element structure cleanly
             fallback.appendChild(downloadLink);
-            fallback.appendChild(trailingTextNode);
+            fallback.appendChild(document.createTextNode(' to open it directly.'));
 
-            // 6. Replace the renderer object on the screen
-            pdfRenderer.replaceWith(fallback);
+            document.querySelector('.paper-frame').appendChild(fallback);
         }
     }
 

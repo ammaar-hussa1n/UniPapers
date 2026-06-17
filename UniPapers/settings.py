@@ -162,12 +162,13 @@ if not DEBUG:
         'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
         'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
         'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+        "RESOURCE_TYPE": "raw",
     }
 
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    MEDIA_URL = '/media/' ####
+    MEDIA_URL = "https://res.cloudinary.com/<cloud_name>/"
 else:
     # Local development uses environment variable if available, fallback to local DB
     DATABASES = {
@@ -224,9 +225,7 @@ STATICFILES_DIRS = [
 
 STORAGES = {
     "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"
-                   if not DEBUG else
-                   "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
