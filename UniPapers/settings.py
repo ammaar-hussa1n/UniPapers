@@ -247,6 +247,29 @@ CACHES = {
 }
 RATELIMIT_USE_CACHE = 'default'
 
+# Log unhandled 500 tracebacks to the console (Railway/Render Logs tab) even when
+# DEBUG is False. Django's default config hides these unless DEBUG is True.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
+
 # Secure authentication rate limits handled natively by django-allauth
 ACCOUNT_RATE_LIMITS = {
     'login_failed': '30/m', # Blocks brute force password guessing 
