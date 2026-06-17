@@ -869,7 +869,7 @@
                             </div>
                         {% else %}
                             <div class="file-fallback">
-                                Preview not available for this file type. <a href="{{ record.file.url }}"> Download the file</a> to open it directly.
+                                Preview not available for this file type. <a href="{{ file_url }}"> Download the file</a> to open it directly.
                             </div>
                         {% endif %}
                     </div>
@@ -920,7 +920,7 @@
     const fileUrl = "{{ file_url|escapejs }}";
     const previewUrl = "{{ preview_url|escapejs }}";
     // CHANGED: Pulled straight from the record field context 
-    const fileName = "{{ record.file.name|escapejs }}";
+    const fileName = "{{ file_name|escapejs }}";
     const paperTitle = "{{ record.title|escapejs }}";
     const paperUrl = window.location.href;
     const paperId = "{{ record.id }}";

@@ -705,7 +705,7 @@
                             </div>
 
                             <div class="pdf-upload">
-                                Uploaded for <span>{{ record.course.term }}</span> | File: {{ record.file.name|default:'Not available' }}
+                                Uploaded for <span>{{ record.course.term }}</span> | File: {{ record.file_basename|default:'Not available' }}
                             </div>
                         </div>
                     </div>

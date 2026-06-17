@@ -252,23 +252,43 @@ def _is_remote_url(name):
     return bool(name) and (name.startswith('http://') or name.startswith('https://'))
 
 
-def _resolve_file_url(filefield):
-    """Return a usable URL for a FileField regardless of how the value is stored.
+def _file_value(file_field):
+    """Return the stored string for a file, handling both field types.
 
-    Records uploaded via Cloudinary store the full delivery URL; older/local
-    records store a storage key. Passing a full URL back through the storage
-    backend's `.url`/`.open` is what triggers the 500 on View Paper, so use the
-    stored URL directly when it already is one.
+    `Record.file` is a URLField (a plain `str` holding the Cloudinary URL),
+    while `PaperAttachment.file` is a FileField (a FieldFile whose `.name`
+    holds the URL). This normalises both to the underlying string.
     """
-    if not filefield:
+    if not file_field:
         return ''
-    name = filefield.name
-    if _is_remote_url(name):
-        return name
+    return getattr(file_field, 'name', file_field)
+
+
+def _resolve_file_url(file_field):
+    """Return a usable URL for a stored file, whatever the field type.
+
+    Uploads store Cloudinary's full delivery URL, so when the value already is
+    an http(s) URL we use it as-is. Only a genuine FileField storage key is
+    passed back through the backend's `.url`.
+    """
+    value = _file_value(file_field)
+    if _is_remote_url(value):
+        return value
+    if not value:
+        return ''
     try:
-        return filefield.url
-    except Exception:
+        return file_field.url
+    except AttributeError:
+        return value
+
+
+def _file_display_name(file_field):
+    """Return a human/file basename for a stored file (e.g. 'paper.pdf')."""
+    value = _file_value(file_field)
+    if not value:
         return ''
+    path = urlsplit(value).path if _is_remote_url(value) else value
+    return Path(path).name
 
 
 def _file_kind_from_name(name):
@@ -304,9 +324,9 @@ def _get_multi_image_attachments(record):
     # 1. Append the primary record file as Page 1
     if record.file:
         attachments_data.append({
-            'path': record.file.name,
+            'path': _file_value(record.file),
             'url': _resolve_file_url(record.file),
-            'name': Path(record.file.name).name,
+            'name': _file_display_name(record.file),
             'title': record.title,
         })
 
@@ -317,9 +337,9 @@ def _get_multi_image_attachments(record):
     for attachment in secondary_attachments:
         if attachment.file:
             attachments_data.append({
-                'path': attachment.file.name,
+                'path': _file_value(attachment.file),
                 'url': _resolve_file_url(attachment.file),
-                'name': Path(attachment.file.name).name,
+                'name': _file_display_name(attachment.file),
                 'title': record.title,
             })
 
@@ -391,15 +411,14 @@ def _prepare_record_preview(record):
     """Attach preview flags safely without crashing on broken files."""
 
     # ---- SAFE FILE NAME ----
-    try:
-        file_name = record.file.name if record.file else ''
-    except Exception:
-        file_name = ''
+    # Record.file is a URLField (str); attachments use FileField. Normalise both.
+    file_name = _file_value(record.file)
 
-    file_ext = Path(file_name).suffix.lower() if file_name else ''
+    file_ext = Path(urlsplit(file_name).path).suffix.lower() if file_name else ''
 
     kind = _file_kind_from_name(file_name)
     record.file_ext = file_ext
+    record.file_basename = _file_display_name(record.file)
     record.is_pdf = kind == 'pdf'
     record.is_image = kind == 'image'
 
@@ -622,7 +641,7 @@ def view(request, paper_id, paper_title=None):
         return redirect('view_paper', paper_id=record.id, paper_title=correct_slug)
 
     _prepare_record_preview(record)
-    file_name = Path(record.file.name).name if record.file else ''
+    file_name = _file_display_name(record.file)
     image_attachments = _get_multi_image_attachments(record)
 
     return render(request, 'home/view_paper.html', {
@@ -659,7 +678,7 @@ def paper_preview(request, paper_id, paper_title=None):
     if paper_title is None or correct_slug != paper_title:
         raise Http404('Past Paper does not exist!')
 
-    file_ref = record.file.name if record.file else ''
+    file_ref = _file_value(record.file)
     if not file_ref:
         raise Http404('Past Paper does not exist!')
 
@@ -681,8 +700,12 @@ def paper_preview(request, paper_id, paper_title=None):
         )
         response = FileResponse(upstream.raw, content_type=content_type)
     else:
+        # Local FileField fallback (only attachments use a real FileField).
+        opener = getattr(record.file, 'open', None)
+        if opener is None:
+            raise Http404('Past Paper does not exist!')
         content_type, _ = mimetypes.guess_type(file_ref)
-        response = FileResponse(record.file.open('rb'), content_type=content_type or 'application/octet-stream')
+        response = FileResponse(opener('rb'), content_type=content_type or 'application/octet-stream')
 
     response['Content-Disposition'] = f'inline; filename="{Path(urlsplit(file_ref).path).name}"'
     return response
@@ -955,9 +978,11 @@ def delete_record(request, paper_id):
     if request.method != 'POST':
         return redirect('profile')
 
-    if record.file:
-        _delete_multi_image_attachments(record)
-        record.file.delete(save=False)
+    # Record.file is a URLField (Cloudinary URL string), so there is no storage
+    # file object to delete; only PaperAttachment.file is a real FileField.
+    for attachment in record.attachments.all():
+        if attachment.file:
+            attachment.file.delete(save=False)
     record.delete()
 
     messages.success(request, 'Paper deleted successfully.')
