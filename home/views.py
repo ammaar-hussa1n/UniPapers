@@ -177,6 +177,16 @@ def _get_or_create_normalized_course(uni, semester, program, course_name, year, 
         session=session,
     )
 
+def _detect_uploaded_file_mime(uploaded_file):
+    uploaded_file.seek(0)
+    initial_bytes = uploaded_file.read(2048)
+    uploaded_file.seek(0)
+
+    if magic is None:
+        return None
+
+    return magic.from_buffer(initial_bytes, mime=True)
+
 def _validate_uploaded_file(uploaded_file):
     """Reject oversized, unexpected, or spoofed uploads using binary inspection."""
     if uploaded_file.size > MAX_UPLOAD_SIZE:
@@ -194,17 +204,10 @@ def _validate_uploaded_file(uploaded_file):
 
     return None
 
-def _detect_uploaded_file_mime(uploaded_file):
-    uploaded_file.seek(0)
-    initial_bytes = uploaded_file.read(2048)
-    uploaded_file.seek(0)
-
-    if magic is None:
-        return None
-
-    return magic.from_buffer(initial_bytes, mime=True)
-
 def _is_image_uploaded_file(uploaded_file):
+    if uploaded_file.name.lower().endswith('.pdf'):
+        return False
+
     detected_mime = _detect_uploaded_file_mime(uploaded_file)
     return detected_mime in IMAGE_UPLOAD_MIME_TYPES
 
@@ -591,6 +594,9 @@ def toggle_save_paper(request, record):
 
 def compress_image(uploaded_image):
     """Automatically shrinks huge smartphone photos to web-friendly sizes."""
+    if uploaded_image.name.lower().endswith('.pdf'):
+        return uploaded_image
+        
     img = Image.open(uploaded_image)
     if img.mode != 'RGB':
         img = img.convert('RGB')
