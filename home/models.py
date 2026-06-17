@@ -49,7 +49,7 @@ class Record(models.Model):
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=255)
-    file = models.URLField()
+    file = models.FileField(upload_to=get_upload_path)
     uploaded_by = models.CharField(max_length=255, default='Anonymous')
     uploaded_email = models.EmailField(max_length=255, default='anonymous@example.com', db_index=True)
     uploaded_at = models.DateTimeField(default=timezone.now)
