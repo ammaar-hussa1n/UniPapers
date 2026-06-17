@@ -182,6 +182,11 @@ else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / "media"
     
+# Force Django to maintain active file object streams during complex validation cycles
+FILE_UPLOAD_HANDLERS = [
+    "django.core.files.uploadhandler.MemoryFileUploadHandler",
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
