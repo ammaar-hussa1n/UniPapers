@@ -187,12 +187,9 @@ def _validate_uploaded_file(uploaded_file):
     if file_ext not in allowed_extensions:
         return 'Unsupported file type!'
 
-    try:
-        detected_mime = _detect_uploaded_file_mime(uploaded_file)
-    except Exception:
-        return 'Could not verify file integrity.'
+    detected_mime = _detect_uploaded_file_mime(uploaded_file)
 
-    if detected_mime not in ALLOWED_UPLOAD_MIME_TYPES:
+    if detected_mime and (detected_mime not in ALLOWED_UPLOAD_MIME_TYPES):
         return 'Unsupported file type.'
 
     return None
@@ -203,10 +200,7 @@ def _detect_uploaded_file_mime(uploaded_file):
     uploaded_file.seek(0)
 
     if magic is None:
-        raise RuntimeError(
-            "'python-magic' is required for file validation. "
-            "Ensure libmagic is installed on the operating system."
-        )
+        return None
 
     return magic.from_buffer(initial_bytes, mime=True)
 
