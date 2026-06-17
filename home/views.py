@@ -335,13 +335,29 @@ def _build_compact_page_window(paginator, current_page_number, window_size=9):
     }
 
 def _prepare_record_preview(record):
-    """Attach preview flags and excerpt text used across paper cards and the detail page."""
-    file_name = record.file.name if record.file else ''
-    file_ext = Path(file_name).suffix.lower()
+    """Attach preview flags safely without crashing on broken files."""
+
+    # ---- SAFE FILE NAME ----
+    try:
+        file_name = record.file.name if record.file else ''
+    except Exception:
+        file_name = ''
+
+    file_ext = Path(file_name).suffix.lower() if file_name else ''
+
     record.file_ext = file_ext
     record.is_pdf = file_ext == '.pdf'
     record.is_image = file_ext in {'.png', '.jpg', '.jpeg', '.webp', '.bmp'}
-    record.preview_url = reverse('paper_preview', args=[record.id, record.title_slug])
+
+    # ---- SAFE URL GENERATION ----
+    try:
+        record.preview_url = reverse(
+            'paper_preview',
+            args=[record.id, record.title_slug]
+        )
+    except Exception:
+        record.preview_url = None
+
     return record
 
 def _attach_preview_metadata(records):
