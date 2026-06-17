@@ -670,6 +670,7 @@ def upload(request):
 
         # General file security configuration checks (size, extension whitelists)
         # ... Your validation loop runs here ...
+        # General file security configuration checks (size, extension whitelists)
         for paper_file in paper_files:
             file_error = _validate_uploaded_file(paper_file)
             if file_error:
@@ -678,17 +679,25 @@ def upload(request):
 
         try:
             with transaction.atomic():
-                # 👇 CHIEF FIX: Pull a fresh, uncorrupted file list directly from Django here!
+                # 1. Pull the fresh, uncorrupted list of file objects directly from the request
                 fresh_files = request.FILES.getlist('paper_file')
-                primary_file = fresh_files[0] # This is guaranteed to be a File object now!
+                primary_file = fresh_files[0]
 
                 uni = _get_or_create_normalized_uni(university)
                 if not uni:
                     messages.error(request, 'Please choose a valid university.')
                     return redirect('upload')
-                
-                # ... Keep your course logic exactly as it is ...
-                course = _get_or_create_normalized_course(uni=uni, ...)
+
+                # 2. RESTORED: Your original clean function execution parameters (NO ELLIPSIS)
+                course = _get_or_create_normalized_course(
+                    uni=uni,
+                    semester=semester,
+                    program=program,
+                    course_name=course_name,
+                    year=year,
+                    term=term,
+                    session=session,
+                )
 
                 record = Record(
                     course=course,
@@ -703,18 +712,19 @@ def upload(request):
                 else:
                     primary_storage_name = Path(primary_file.name).name
 
-                # Check if it's an image using your strict bypass logic
+                # Check if it's an image using your strict filename-aware utility
                 if _is_image_uploaded_file(primary_file):
                     primary_file = compress_image(primary_file)
 
-                # LINE 713: This will now execute perfectly!
+                # Line 713 executes flawlessly now
                 record.file.save(primary_storage_name, primary_file, save=False)
                 record.save()
 
-                # 👇 FIX FOR ATTACHMENTS: Use the fresh list here too if it's multi-upload
+                # Process additional attachments cleanly if multiple files are selected
                 if is_multi_image_upload and batch_id:
                     for index, paper_file in enumerate(fresh_files[1:], start=2):
                         storage_name = _build_multi_image_storage_name(batch_id, index, paper_file.name)
+                        
                         if _is_image_uploaded_file(paper_file):
                             paper_file = compress_image(paper_file)
 
