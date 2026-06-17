@@ -157,10 +157,6 @@ if not DEBUG:
         'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
     }
 
-    DEFAULT_FILE_STORAGE = (
-        'cloudinary_storage.storage.MediaCloudinaryStorage'
-    )
-
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -218,9 +214,17 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     BASE_DIR / 'Public'
 ]
-STATICFILES_STORAGE = (
-    'whitenoise.storage.CompressedManifestStaticFilesStorage'
-)
+
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"
+                   if not DEBUG else
+                   "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 CSRF_TRUSTED_ORIGINS = [
     "https://unipapers-production.up.railway.app",
