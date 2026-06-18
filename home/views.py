@@ -209,7 +209,14 @@ def _is_image_uploaded_file(uploaded_file):
         return False
 
     detected_mime = _detect_uploaded_file_mime(uploaded_file)
-    return detected_mime in IMAGE_UPLOAD_MIME_TYPES
+    
+    # 1. If magic worked perfectly, validate against your strict list
+    if detected_mime is not None:
+        return detected_mime in IMAGE_UPLOAD_MIME_TYPES
+
+    # 2. SOFT CHECK BYPASS: If magic failed (returned None), use Django's native check!
+    django_mime = getattr(uploaded_file, 'content_type', '').lower()
+    return django_mime in IMAGE_UPLOAD_MIME_TYPES or django_mime.startswith('image/')
 
 def _build_multi_image_storage_name(batch_id, index, original_name):
     return f'upload_{batch_id}_{index}{Path(original_name).suffix.lower()}'
