@@ -163,6 +163,7 @@ if not DEBUG:
         'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
         'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
         "RESOURCE_TYPE": "raw",
+        "PRESERVE_FILES_EXTENSIONS": True,
     }
 
     SECURE_SSL_REDIRECT = True
