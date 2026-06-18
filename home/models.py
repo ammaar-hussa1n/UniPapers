@@ -5,6 +5,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 def get_upload_path(instance, filename):
     """
@@ -49,7 +50,7 @@ class Record(models.Model):
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=255)
-    file = models.FileField(upload_to=get_upload_path)
+    file = models.FileField(upload_to=get_upload_path, storage=RawMediaCloudinaryStorage())
 
     file_extension = models.CharField(max_length=10, blank=True, default='')
 
