@@ -919,7 +919,6 @@
 <script>
     const fileUrl = "{{ file_url|escapejs }}";
     const previewUrl = "{{ preview_url|escapejs }}";
-    // CHANGED: Pulled straight from the record field context 
     const fileName = "{{ file_name|escapejs }}";
     const paperTitle = "{{ record.title|escapejs }}";
     const paperUrl = window.location.href;
@@ -938,24 +937,24 @@
         }, 2200);
     }
 
-    // CHANGED: Added targetUrl and targetName parameters with fallbacks to preserve sidebar button
-    // UPGRADED TO ABSOLUTE FAIL-SAFE FOR RAW FILES
+    // THE FIXED DOWNLOAD LOGIC
     function downloadFile(targetUrl, targetName) {
         let urlToDownload = targetUrl || fileUrl;
         const nameToSave = targetName || fileName;
 
-        // CRITICAL FIX: If downloading the main document, pull the live source 
-        // straight from the working PDF frame renderer to avoid stale variables!
-        const pdfFrame = document.getElementById('pdfRenderer');
-        if (!targetUrl && pdfFrame && pdfFrame.src) {
-            // Only use it if it's a real web link, not a local blob object placeholder
-            if (pdfFrame.src.startsWith('http')) {
-                urlToDownload = pdfFrame.src;
-            }
+        // 1. If downloading the main document and we have a live working blob in memory, use it!
+        if (!targetUrl && pdfObjectUrl) {
+            urlToDownload = pdfObjectUrl;
         }
 
-        // Force Cloudinary to serve the file as a true local attachment download
+        // 2. If it's a Cloudinary link, make sure it uses the proper delivery pipeline
         if (urlToDownload.includes('cloudinary.com')) {
+            // Fix asset type classification if it got mismatched
+            if (nameToSave.toLowerCase().endsWith('.pdf') && urlToDownload.includes('/image/upload/')) {
+                urlToDownload = urlToDownload.replace('/image/upload/', '/raw/upload/');
+            }
+
+            // Force automatic browser attachment behavior
             if (urlToDownload.includes('/upload/')) {
                 urlToDownload = urlToDownload.replace('/upload/', '/upload/fl_attachment/');
             } else if (urlToDownload.includes('/raw/')) {
@@ -966,7 +965,11 @@
         const link = document.createElement('a');
         link.href = urlToDownload;
         link.download = nameToSave;
-        link.target = '_blank';
+        
+        // Only use blank targets for real web addresses, blobs download locally
+        if (urlToDownload.startsWith('http')) {
+            link.target = '_blank';
+        }
         
         document.body.appendChild(link);
         link.click();
@@ -1071,9 +1074,10 @@
             ));
 
             const downloadLink = document.createElement('a');
-            downloadLink.href = fileUrl;
+            // Ensure fallback download button gets the upgraded logic call
+            downloadLink.href = "javascript:void(0);";
+            downloadLink.onclick = () => downloadFile();
             downloadLink.textContent = 'Download the file';
-            downloadLink.target = '_blank';
 
             fallback.appendChild(downloadLink);
             fallback.appendChild(document.createTextNode(' to open it directly.'));
