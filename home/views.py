@@ -244,8 +244,8 @@ def _get_multi_image_attachments(record):
     """
     attachments_data = []
 
-    # 1. Append the primary record file as Page 1
-    if record.file:
+    # 1. ONLY append the primary record file if it is NOT a PDF
+    if record.file and getattr(record, 'file_extension', '') != '.pdf':
         attachments_data.append({
             'path': record.file.name,
             'url': record.file.url,
@@ -253,8 +253,7 @@ def _get_multi_image_attachments(record):
             'title': record.title,
         })
 
-    # 2. Query the secondary pages from your new relation table
-    # This replaces the old _get_multi_image_attachment_paths logic
+    # 2. Query the secondary pages from your relation table
     secondary_attachments = record.attachments.all()
     
     for attachment in secondary_attachments:
