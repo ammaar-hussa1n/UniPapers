@@ -939,9 +939,20 @@
     }
 
     // CHANGED: Added targetUrl and targetName parameters with fallbacks to preserve sidebar button
+    // UPGRADED TO ABSOLUTE FAIL-SAFE FOR RAW FILES
     function downloadFile(targetUrl, targetName) {
         let urlToDownload = targetUrl || fileUrl;
         const nameToSave = targetName || fileName;
+
+        // CRITICAL FIX: If downloading the main document, pull the live source 
+        // straight from the working PDF frame renderer to avoid stale variables!
+        const pdfFrame = document.getElementById('pdfRenderer');
+        if (!targetUrl && pdfFrame && pdfFrame.src) {
+            // Only use it if it's a real web link, not a local blob object placeholder
+            if (pdfFrame.src.startsWith('http')) {
+                urlToDownload = pdfFrame.src;
+            }
+        }
 
         // Force Cloudinary to serve the file as a true local attachment download
         if (urlToDownload.includes('cloudinary.com')) {
@@ -955,7 +966,7 @@
         const link = document.createElement('a');
         link.href = urlToDownload;
         link.download = nameToSave;
-        link.target = '_blank'; // Fail-safe anchor boundary fallback
+        link.target = '_blank';
         
         document.body.appendChild(link);
         link.click();
