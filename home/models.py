@@ -50,7 +50,7 @@ class Record(models.Model):
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=255)
-    file = models.FileField(upload_to=get_upload_path, storage=RawMediaCloudinaryStorage())
+    file = models.FileField(upload_to=get_upload_path, storage=RawMediaCloudinaryStorage(), max_length=500)
 
     file_extension = models.CharField(max_length=10, blank=True, default='')
 
@@ -118,7 +118,9 @@ class Record(models.Model):
 class PaperAttachment(models.Model):
     # Links many secondary pages back to the one primary Record row
     record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name='attachments')
-    file = models.FileField(upload_to=get_upload_path)
+    
+    # Bump the max_length here too to protect multi-file uploads!
+    file = models.FileField(upload_to=get_upload_path, max_length=500) 
     uploaded_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
