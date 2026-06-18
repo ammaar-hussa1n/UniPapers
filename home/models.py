@@ -50,6 +50,9 @@ class Record(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=255)
     file = models.FileField(upload_to=get_upload_path)
+
+    file_extension = models.CharField(max_length=10, blank=True, default='')
+
     uploaded_by = models.CharField(max_length=255, default='Anonymous')
     uploaded_email = models.EmailField(max_length=255, default='anonymous@example.com', db_index=True)
     uploaded_at = models.DateTimeField(default=timezone.now)
@@ -101,6 +104,10 @@ class Record(models.Model):
         return slugify(self.title) or 'paper'
 
     def save(self, *args, **kwargs):
+        if self.file and not self.file_extension:
+            # self.file.name at this point is the original uploaded string (e.g., 'test.pdf')
+            ext = os.path.splitext(self.file.name)[1].lower()
+            self.file_extension = ext
         super().save(*args, **kwargs)
         
     class Meta:
