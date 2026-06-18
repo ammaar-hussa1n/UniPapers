@@ -1,0 +1,109 @@
+{% extends 'home/base.html' %}
+
+{% block content %}
+<style>
+    .error-page {
+        min-height: calc(100vh - 140px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 24px;
+        background: 
+            radial-gradient(circle at top left, rgba(22, 127, 70, 0.05), transparent 40%),
+            linear-gradient(180deg, #f7faf7 0%, #eef3ef 100%);
+        color: #0f172a;
+    }
+
+    .error-container {
+        text-align: center;
+        max-width: 560px;
+        background: rgba(255, 255, 255, 0.86);
+        backdrop-filter: blur(16px);
+        padding: 48px 32px;
+        border-radius: 32px;
+        border: 1px solid rgba(215, 224, 217, 0.92);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+    }
+
+    .error-status {
+        font-size: 5rem;
+        font-weight: 900;
+        line-height: 1;
+        color: #167f46;
+        letter-spacing: -0.04em;
+        margin-bottom: 16px;
+    }
+
+    .error-illustration {
+        width: 140px;
+        height: 140px;
+        margin: 0 auto 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e8f4ec;
+        border-radius: 40px;
+    }
+
+    .error-illustration img {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+    }
+
+    .error-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-bottom: 12px;
+    }
+
+    .error-desc {
+        color: #667085;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 32px;
+    }
+
+    .error-home-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 28px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #167f46 0%, #0f6a39 100%);
+        color: #fff;
+        font-weight: 700;
+        text-decoration: none;
+        box-shadow: 0 8px 20px rgba(22, 127, 70, 0.2);
+        transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .error-home-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(22, 127, 70, 0.3);
+    }
+</style>
+
+<div class="error-page">
+    <div class="error-container">
+        
+        <div class="error-illustration">
+            {% if status_code == 404 %}
+                <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png" alt="Not Found">
+            {% else %}
+                <img src="https://cdn-icons-png.flaticon.com/512/3247/3247310.png" alt="Error Wrench">
+            {% endif %}
+        </div>
+
+        <div class="error-status">{{ status_code }}</div>
+        <h1 class="error-title">{{ title }}</h1>
+        <p class="error-desc">{{ description }}</p>
+        
+        <a href="/" class="error-home-btn">
+            <span>Return to Home</span>
+            <span>→</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -90,6 +90,42 @@ REPORT_REASON_CHOICES = [
     'Button(s) not working',
 ]
 
+# errors #
+
+def error_404_view(request, exception):
+    context = {
+        'status_code': 404,
+        'title': 'Page Not Found',
+        'description': "We searched everywhere but couldn't find this past paper or page. It might have been removed or renamed."
+    }
+    return render(request, 'errors.html', context, status=404)
+
+def error_500_view(request):
+    context = {
+        'status_code': 500,
+        'title': 'Server Error',
+        'description': 'Something went wrong on our end. Please try again later or contact the developer if the issue persists.'
+    }
+    return render(request, 'errors.html', context, status=500)
+
+def error_403_view(request, exception=None):
+    context = {
+        'status_code': 403,
+        'title': 'Access Denied',
+        'description': "You don't have permission to view this resource or past paper until it is approved."
+    }
+    return render(request, 'errors.html', context, status=403)
+
+def error_400_view(request, exception=None):
+    context = {
+        'status_code': 400,
+        'title': 'Bad Request',
+        'description': 'Your browser sent a request that this server could not understand or process.'
+    }
+    return render(request, 'errors.html', context, status=400)
+
+# erros #
+
 def _clean_text_input(value):
     if value is None:
         return ''
