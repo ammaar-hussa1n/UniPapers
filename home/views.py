@@ -332,11 +332,26 @@ def _build_compact_page_window(paginator, current_page_number, window_size=9):
 
 def _prepare_record_preview(record):
     """Attach preview flags and excerpt text used across paper cards and the detail page."""
-    file_name = record.file.name if record.file else ''
-    file_ext = Path(file_name).suffix.lower()
-    record.file_ext = file_ext
-    record.is_pdf = file_ext == '.pdf'
-    record.is_image = file_ext in {'.png', '.jpg', '.jpeg', '.webp', '.bmp'}
+    # Convert the file name to lowercase to safely read it
+    file_name = record.file.name.lower() if record.file else ''
+    
+    # 1. Fallback check: If Cloudinary stripped the extension, check the original title/name string
+    # or look for clues in the string stream itself
+    is_pdf_file = '.pdf' in file_name or (hasattr(record, 'title') and '.pdf' in record.title.lower())
+    
+    # 2. Assign the actual flags cleanly based on that match
+    record.is_pdf = is_pdf_file
+    
+    # If it's a PDF, it definitely is not a base image attachment
+    if is_pdf_file:
+        record.is_image = False
+        record.file_ext = '.pdf'
+    else:
+        # Keep your original image signature checks for non-PDF files
+        file_ext = Path(file_name).suffix.lower()
+        record.file_ext = file_ext
+        record.is_image = file_ext in {'.png', '.jpg', '.jpeg', '.webp', '.bmp'}
+        
     record.preview_url = reverse('paper_preview', args=[record.id, slugify(record.title)])
     return record
 
