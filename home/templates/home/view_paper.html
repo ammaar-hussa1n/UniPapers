@@ -940,12 +940,23 @@
 
     // CHANGED: Added targetUrl and targetName parameters with fallbacks to preserve sidebar button
     function downloadFile(targetUrl, targetName) {
-        const urlToDownload = targetUrl || fileUrl;
+        let urlToDownload = targetUrl || fileUrl;
         const nameToSave = targetName || fileName;
+
+        // Force Cloudinary to serve the file as a true local attachment download
+        if (urlToDownload.includes('cloudinary.com')) {
+            if (urlToDownload.includes('/upload/')) {
+                urlToDownload = urlToDownload.replace('/upload/', '/upload/fl_attachment/');
+            } else if (urlToDownload.includes('/raw/')) {
+                urlToDownload = urlToDownload.replace('/raw/', '/raw/fl_attachment/');
+            }
+        }
 
         const link = document.createElement('a');
         link.href = urlToDownload;
         link.download = nameToSave;
+        link.target = '_blank'; // Fail-safe anchor boundary fallback
+        
         document.body.appendChild(link);
         link.click();
         link.remove();
