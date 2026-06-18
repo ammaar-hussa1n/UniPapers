@@ -843,13 +843,13 @@
 
                 <div class="viewer-body">
                     <div class="paper-frame">
-                        {% if record.is_pdf %}
-                            <iframe
-                                id="pdfRenderer"
-                                class="pdf-embed"
-                                title="{{ record.title }}"
-                                loading="lazy"
-                            ></iframe>
+                        {% if is_pdf %}  <iframe
+                            id="pdfRenderer"
+                            src="{{ record.file.url }}" class="pdf-embed"
+                            title="{{ record.title }}"
+                            loading="lazy"
+                            style="width: 100%; height: 600px; border: none;"
+                        ></iframe>
                         {% elif image_attachments %}
                             <div class="image-gallery">
                                 {% for attachment in image_attachments %}
