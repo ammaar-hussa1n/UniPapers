@@ -168,7 +168,7 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    MEDIA_URL = "https://res.cloudinary.com/<cloud_name>/"
+    MEDIA_URL = '/media/'
 else:
     # Local development uses environment variable if available, fallback to local DB
     DATABASES = {

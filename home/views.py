@@ -710,7 +710,7 @@ def upload(request):
                 if is_multi_image_upload and batch_id:
                     primary_storage_name = _build_multi_image_storage_name(batch_id, 1, primary_file.name)
                 else:
-                    primary_storage_name = Path(primary_file.name).name
+                    primary_storage_name = primary_file.name
 
                 # ONLY attempt image compression if the file stream is genuinely an image asset
                 if _is_image_uploaded_file(primary_file):
