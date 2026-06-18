@@ -96,7 +96,7 @@ def error_404_view(request, exception):
     context = {
         'status_code': 404,
         'title': 'Page Not Found',
-        'description': "We searched everywhere but couldn't find this past paper or page. It might have been removed or renamed."
+        'description': "I searched everywhere but couldn't find this past paper or page. It might have been removed or renamed."
     }
     return render(request, 'home/errors.html', context, status=404)
 
@@ -104,7 +104,7 @@ def error_500_view(request):
     context = {
         'status_code': 500,
         'title': 'Server Error',
-        'description': 'Something went wrong on our end. Please try again later or contact the developer if the issue persists.'
+        'description': 'Something went wrong! Please try again later or contact the developer if the issue persists.'
     }
     return render(request, 'home/errors.html', context, status=500)
 
@@ -112,7 +112,7 @@ def error_403_view(request, exception=None):
     context = {
         'status_code': 403,
         'title': 'Access Denied',
-        'description': "You don't have permission to view this resource or past paper until it is approved."
+        'description': "You don't have permission to view this page!"
     }
     return render(request, 'home/errors.html', context, status=403)
 
@@ -120,7 +120,7 @@ def error_400_view(request, exception=None):
     context = {
         'status_code': 400,
         'title': 'Bad Request',
-        'description': 'Your browser sent a request that this server could not understand or process.'
+        'description': 'Your browser sent a request that this server could not understand or process. Try again later or contact the developer if the issue persists.'
     }
     return render(request, 'home/errors.html', context, status=400)
 
