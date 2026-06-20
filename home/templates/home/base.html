@@ -527,7 +527,7 @@
     </div>
 
     <div class="nav-center">
-        {% if request.resolver_match.url_name != 'privacy_policy' and request.resolver_match.url_name != 'terms_and_conditions' and request.resolver_match.url_name != 'about' and request.resolver_match.url_name != 'upload' and request.resolver_match.url_name != 'account_login' and request.resolver_match.url_name != 'errors' %}
+        {% if not status_code and request.resolver_match.url_name != 'privacy_policy' and request.resolver_match.url_name != 'terms_and_conditions' and request.resolver_match.url_name != 'about' and request.resolver_match.url_name != 'upload' and request.resolver_match.url_name != 'account_login'%}
         <div class="search-container">
             <form method="get" action="{% url 'search' %}" class="search-form">
                 <div class="search-input-group">
