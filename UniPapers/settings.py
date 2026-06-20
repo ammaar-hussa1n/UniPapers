@@ -40,7 +40,7 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "unipapers-production.up.railway.app",
+    "unipapers.onrender.com",
 ]
 
 
@@ -239,7 +239,7 @@ STORAGES = {
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://unipapers-production.up.railway.app",
+    "https://unipapers.onrender.com",
 ]
 SECURE_PROXY_SSL_HEADER = (
     'HTTP_X_FORWARDED_PROTO',
