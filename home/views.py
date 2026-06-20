@@ -92,6 +92,7 @@ REPORT_REASON_CHOICES = [
 
 # errors #
 
+@ratelimit(key='user_or_ip', rate='50/m', block=True)
 def error_404_view(request, exception):
     context = {
         'status_code': 404,
@@ -99,7 +100,8 @@ def error_404_view(request, exception):
         'description': "I searched everywhere but couldn't find this past paper or page. It might have been removed or renamed."
     }
     return render(request, 'home/errors.html', context, status=404)
-
+    
+@ratelimit(key='user_or_ip', rate='50/m', block=True)
 def error_500_view(request):
     context = {
         'status_code': 500,
@@ -108,6 +110,7 @@ def error_500_view(request):
     }
     return render(request, 'home/errors.html', context, status=500)
 
+@ratelimit(key='user_or_ip', rate='50/m', block=True)
 def error_403_view(request, exception=None):
     context = {
         'status_code': 403,
@@ -116,6 +119,7 @@ def error_403_view(request, exception=None):
     }
     return render(request, 'home/errors.html', context, status=403)
 
+@ratelimit(key='user_or_ip', rate='50/m', block=True)
 def error_400_view(request, exception=None):
     context = {
         'status_code': 400,
