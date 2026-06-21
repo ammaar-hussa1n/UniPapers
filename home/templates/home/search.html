@@ -458,56 +458,58 @@
     }
 
     @media(max-width:900px){
-        /* --- Keep your existing PDF Card styles --- */
+        /* Keep your existing PDF Card styles */
         .container{
             width:94%;
         }
-
         .pdf-card{
             flex-direction:column;
         }
-
         .pdf-left{
             flex-direction:column;
         }
-
         .pdf-actions{
             justify-content:flex-end;
         }
-
         .pdf-thumbnail{
             width:100%;
             height:220px;
         }
-        
         .pdf-card-right{
             min-width:0;
             justify-content:flex-start;
             padding-top:0;
         }
 
-        /* --- New Dropdown Overflow Fixes --- */
+        /* --- Dropdown Mobile Adjustments --- */
         .filter-bar {
-            gap: 10px; /* Squeeze buttons a bit closer on smaller screens */
+            gap: 10px;
         }
 
         .filter-menu {
+            /* Default mobile fallback: anchor to the left edge */
             left: 0;
-            transform: none; /* Removes the problematic desktop center positioning */
-            width: calc(100vw - 32px); /* Fluid width bounded by screen width */
-            max-width: 300px; /* Prevents it from looking too wide on larger tablets */
+            transform: none; 
+            width: calc(100vw - 32px); 
+            max-width: 290px; 
             padding: 14px;
+        }
+
+        /* JavaScript will apply this class if the menu bleeds off the right side */
+        .filter-menu.is-overflowing-right {
+            left: auto;
+            right: 0;
         }
 
         .filter-menu-list.compact-grid,
         .filter-menu-list.term-grid {
-            grid-template-columns: 1fr; /* Drop to a single column on tight screen spaces */
+            grid-template-columns: 1fr; 
             gap: 4px;
         }
 
         .filter-option {
             padding: 8px 10px;
-            white-space: normal; /* Allows long text/university names to wrap instead of clipping */
+            white-space: normal; 
         }
     }
 </style>
