@@ -481,25 +481,27 @@
             padding-top:0;
         }
 
-        /* --- Dropdown Mobile Adjustments --- */
+        /* --- Clean Centered Mobile Dropdowns --- */
         .filter-bar {
             gap: 10px;
+            justify-content: center; /* Centers the buttons themselves on small rows */
+        }
+
+        .filter-group {
+            position: relative; /* Keeps the menu anchored to its button */
         }
 
         .filter-menu {
-            /* Default: Anchor cleanly to the left edge of its button */
-            left: 0;
-            right: auto;
-            transform: none; 
-            width: calc(100vw - 32px); 
+            position: absolute;
+            top: calc(100% - 1px);
+            left: 50%; /* Push right by 50% of parent width */
+            transform: translateX(-50%); /* Pull left by 50% of its own width to perfectly center */
+            
+            /* Fluid width configuration to prevent viewport clipping */
+            width: 85vw; 
             max-width: 290px; 
             padding: 14px;
-        }
-
-        /* Dynamically applied by JavaScript if the menu clips out on the right */
-        .filter-menu.is-overflowing-right {
-            left: auto;
-            right: 0;
+            z-index: 1010;
         }
 
         .filter-menu-list.compact-grid,
@@ -816,35 +818,6 @@
             const value = event.currentTarget.dataset.filterValue;
             updateFilter(key, value);
         });
-    });
-
-    // --- Dynamic Mobile Screen Boundary Adjustment ---
-    const dropdowns = document.querySelectorAll('.filter-dropdown');
-
-    function checkDropdownBoundaries() {
-        if (window.innerWidth > 900) return; // Only execute tracking on mobile/tablet widths
-
-        dropdowns.forEach(dropdown => {
-            const menu = dropdown.querySelector('.filter-menu');
-            if (!menu) return;
-
-            // Temporarily reset position to calculate the original browser placement
-            menu.classList.remove('is-overflowing-right');
-
-            const menuRect = menu.getBoundingClientRect();
-            const windowWidth = window.innerWidth;
-
-            // If the right edge of the menu spills past the screen width edge
-            if (menuRect.right > windowWidth) {
-                menu.classList.add('is-overflowing-right');
-            }
-        });
-    }
-
-    // Recalculate positions right when someone hovers or focuses on a dropdown row
-    dropdowns.forEach(dropdown => {
-        dropdown.addEventListener('mouseenter', checkDropdownBoundaries);
-        dropdown.addEventListener('focusin', checkDropdownBoundaries);
     });
 </script>
 {% endblock %}
