@@ -445,6 +445,7 @@
             color: #168a45;
         }
 
+        /* UPDATED FOOTER LAYOUT HARDENING */
         .footer-navbar {
             display: flex;
             align-items: center;
@@ -454,6 +455,24 @@
             background: #fff;
             flex-wrap: wrap;
             gap: 12px;
+        }
+
+        /* Forces exact center calibration for desktop screens */
+        .footer-navbar > .nav-left,
+        .footer-navbar > .nav-right {
+            flex: 1 0 0%;
+        }
+
+        .footer-navbar > .nav-center {
+            flex: 0 0 auto;
+            text-align: center;
+        }
+
+        .footer-navbar > .nav-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: right;
         }
 
         .profile-icon-btn {
@@ -550,17 +569,26 @@
                 transform: translateX(-50%);
             }
 
+            /* UPDATED FOOTER MOBILE MATRIX STACK */
             .footer-navbar {
                 flex-direction: column;
-                align-items: flex-start;
-                padding: 16px;
-                gap: 10px;
+                align-items: center;
+                text-align: center;
+                padding: 20px 16px;
+                gap: 16px;
             }
 
             .footer-navbar .nav-left,
             .footer-navbar .nav-center,
             .footer-navbar .nav-right {
                 width: 100%;
+                flex: none;
+            }
+
+            .footer-navbar .nav-right {
+                align-items: center;
+                text-align: center;
+                gap: 4px;
             }
         }
 
