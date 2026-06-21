@@ -487,16 +487,22 @@
         }
 
         .filter-menu {
-            /* Default mobile fallback: anchor to the left edge */
-            left: 0;
             transform: none; 
             width: calc(100vw - 32px); 
-            max-width: 290px; 
+            max-width: 280px; 
             padding: 14px;
         }
 
-        /* JavaScript will apply this class if the menu bleeds off the right side */
-        .filter-menu.is-overflowing-right {
+        /* 1. Default: Left-most filters (like University) anchor to the left edge */
+        .filter-dropdown .filter-menu {
+            left: 0;
+            right: auto;
+        }
+
+        /* 2. Fix Right-Side Bleed: Explicitly anchor Semester, Program, and Year to the right edge */
+        .filter-dropdown:nth-of-type(2) .filter-menu, /* Semester */
+        .filter-dropdown:nth-of-type(3) .filter-menu, /* Program */
+        .filter-dropdown:last-of-type .filter-menu {   /* Year / Last element */
             left: auto;
             right: 0;
         }
