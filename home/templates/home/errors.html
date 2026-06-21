@@ -6,14 +6,12 @@
         min-height: calc(100vh - 140px);
         display: flex;
         align-items: center;
-        justify-self: center;
         justify-content: center;
         padding: 40px 24px;
         background: 
             radial-gradient(circle at top left, rgba(22, 127, 70, 0.05), transparent 40%),
             linear-gradient(180deg, #f7faf7 0%, #eef3ef 100%);
         color: #0f172a;
-        width: 100%;
     }
 
     .error-container {
@@ -74,7 +72,7 @@
         padding: 14px 28px;
         border-radius: 16px;
         background: linear-gradient(180deg, #167f46 0%, #0f6a39 100%);
-        color: #fff !important;
+        color: #fff;
         font-weight: 700;
         text-decoration: none;
         box-shadow: 0 8px 20px rgba(22, 127, 70, 0.2);
@@ -91,18 +89,18 @@
     <div class="error-container">
         
         <div class="error-illustration">
-            {% if status_code == 404 or exception %}
+            {% if status_code == 404 %}
                 <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png" alt="Not Found">
             {% else %}
                 <img src="https://cdn-icons-png.flaticon.com/512/3247/3247310.png" alt="Error Wrench">
             {% endif %}
         </div>
 
-        <div class="error-status">{% firstof status_code "404" %}</div>
-        <h1 class="error-title">{% firstof title "Page Not Found" %}</h1>
-        <p class="error-desc">{% firstof description "The page you are looking for doesn't exist or has been moved." %}</p>
+        <div class="error-status">{{ status_code }}</div>
+        <h1 class="error-title">{{ title }}</h1>
+        <p class="error-desc">{{ description }}</p>
         
-        <a href="{% url 'home' %}" class="error-home-btn">
+        <a href="/" class="error-home-btn">
             <span>Return to Home</span>
             <span>→</span>
         </a>

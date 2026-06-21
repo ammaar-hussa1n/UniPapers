@@ -3,113 +3,85 @@
 
 {% block content %}
 <style>
-    .home-page {
-        min-height: calc(100vh - 72px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 48px 24px;
-        background: linear-gradient(180deg, #f7f9fc 0%, #eef4ef 100%);
-        width: 100%;
-    }
+	.home-page {
+		min-height: calc(100vh - 72px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 48px 24px;
+		background: linear-gradient(180deg, #f7f9fc 0%, #eef4ef 100%);
+	}
 
-    .home-list {
-        width: min(760px, 100%);
-        display: grid;
-        gap: 22px;
-    }
+	.home-list {
+		width: min(760px, 100%);
+		display: grid;
+		gap: 22px;
+	}
 
-    .page-title {
-        margin-bottom: 6px;
-        text-align: center;
-        font-size: 14px;
-        font-weight: 700;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: #168a45;
-    }
+	.university-row {
+		display: flex;
+		align-items: center;
+		gap: 22px;
+		padding: 22px 26px;
+		border-radius: 18px;
+		background: rgba(255, 255, 255, 0.9);
+		box-shadow: 0 10px 30px rgba(21, 33, 44, 0.08);
+		border: 1px solid rgba(22, 138, 69, 0.08);
+		font-size: 30px;
+		font-weight: 700;
+	}
 
-    .university-link {
-        text-decoration: none;
-        display: block;
-        border-radius: 18px;
-        transition: transform 0.2s ease;
-    }
+	.university-link {
+		display: flex;
+		align-items: center;
+		width: 100%;
+		height: 100%;
+		text-decoration: none;
+		color: inherit;
+		transition: transform 0.2s ease, opacity 0.2s ease;
+	}
 
-    .university-row {
-        display: flex;
-        align-items: center;
-        gap: 26px;
-        padding: 22px 32px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.96);
-        box-shadow: 0 10px 30px rgba(21, 33, 44, 0.05);
-        border: 1px solid rgba(22, 138, 69, 0.08);
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
+	.university-link:hover {
+		transform: scale(1.04);
+		opacity: 0.92;
+	}
 
-    /* Card hover effects */
-    .university-link:hover {
-        transform: translateY(-3px);
-    }
+	.university-logo {
+		width: 96px;
+		height: 96px;
+		object-fit: contain;
+		display: block;
+	}
 
-    .university-link:hover .university-row {
-        border-color: #168a45;
-        box-shadow: 0 14px 35px rgba(22, 138, 69, 0.1);
-    }
+	.university-name {
+		color: #17324d;
+		line-height: 1.1;
+	}
 
-    .university-link:hover .university-name {
-        color: #168a45;
-    }
-
-    .university-logo {
-        width: 80px;
-        height: 80px;
-        object-fit: contain;
-        display: block;
-    }
-
-    .university-name {
-        color: #17324d;
-        font-size: 26px;
-        font-weight: 700;
-        line-height: 1.2;
-        transition: color 0.2s ease;
-    }
-
-    /* Mobile responsive adjustments */
-    @media (max-width: 480px) {
-        .university-row {
-            padding: 16px 20px;
-            gap: 16px;
-        }
-        .university-logo {
-            width: 60px;
-            height: 60px;
-        }
-        .university-name {
-            font-size: 20px;
-        }
-    }
+	.page-title {
+		margin-bottom: 22px;
+		text-align: center;
+		font-size: 16px;
+		font-weight: 700;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: #168a45;
+	}
 </style>
 
 <section class="home-page">
-    <div class="home-list">
-        <div class="page-title">Search Past Papers Of...</div>
+	<div class="home-list">
+		<div class="page-title">Search Past Papers Of...</div>
 
-        <a class="university-link" href="{% url 'search' %}?university=FAST University">
-            <div class="university-row">
-                <img class="university-logo" src="{% static 'FAST.png' %}" alt="FAST University logo">
-                <span class="university-name">FAST University</span>
-            </div>
-        </a>
+		<a class="university-row university-link" href="{% url 'search' %}?university=FAST University">
+			<img class="university-logo" src="{% static 'FAST.png' %}" alt="FAST University logo">
+			<span class="university-name">FAST University</span>
+		</a>
 
-        <a class="university-link" href="{% url 'search' %}?university=Sir Syed University">
-            <div class="university-row">
-                <img class="university-logo" src="{% static 'SSUET.png' %}" alt="Sir Syed University logo">
-                <span class="university-name">Sir Syed University</span>
-            </div>
-        </a>
-    </div>
+		<a class="university-row university-link" href="{% url 'search' %}?university=Sir Syed University">
+			<img class="university-logo" src="{% static 'SSUET.png' %}" alt="SSUET University logo">
+			<span class="university-name">Sir Syed University</span>
+		</a>
+	</div>
 </section>
 {% endblock %}
