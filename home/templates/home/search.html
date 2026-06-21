@@ -481,27 +481,29 @@
             padding-top:0;
         }
 
-        /* --- Clean Centered Mobile Dropdowns --- */
+        /* --- Targeted Dropdown Centering --- */
         .filter-bar {
-            gap: 10px;
-            justify-content: center; /* Centers the buttons themselves on small rows */
-        }
-
-        .filter-group {
-            position: relative; /* Keeps the menu anchored to its button */
+            gap: 14px; /* Matches your desktop gap */
+            justify-content: flex-start; /* Keeps buttons left-aligned naturally */
         }
 
         .filter-menu {
-            position: absolute;
-            top: calc(100% - 1px);
-            left: 50%; /* Push right by 50% of parent width */
-            transform: translateX(-50%); /* Pull left by 50% of its own width to perfectly center */
-            
-            /* Fluid width configuration to prevent viewport clipping */
-            width: 85vw; 
+            /* Fallback default for the other dropdowns */
+            left: 0;
+            transform: none;
+            width: calc(100vw - 32px); 
             max-width: 290px; 
             padding: 14px;
-            z-index: 1010;
+        }
+
+        /* Target ONLY Semester (2nd dropdown) and Year (last dropdown) menus to center */
+        .filter-dropdown:nth-of-type(2) .filter-menu,
+        .filter-dropdown:last-of-type .filter-menu {
+            left: 50%;
+            right: auto;
+            transform: translateX(-50%);
+            width: 85vw; /* Fluid scaling so it stays clean on small screens */
+            max-width: 280px;
         }
 
         .filter-menu-list.compact-grid,
