@@ -514,17 +514,17 @@
         }
 
         /* ==========================================================================
-           ADDED RESPONSIVE MEDIA BREAKPOINTS FOR MOBILE SCREENS
+           UPDATED RESPONSIVE MEDIA BREAKPOINTS FOR MOBILE SCREENS
            ========================================================================== */
         @media (max-width: 768px) {
-            /* 1. Header Breakpoint: Switches Grid to Flexbox to wrap elements */
+            /* 1. Header Breakpoint: Switches Grid to Flexbox to wrap elements cleanly */
             .navbar {
                 display: flex;
                 flex-wrap: wrap;
                 height: auto;
                 min-height: auto;
                 padding: 12px 16px;
-                gap: 12px;
+                gap: 8px; /* Slightly tighter gap to save vertical space */
                 justify-content: space-between;
             }
 
@@ -537,11 +537,17 @@
                 width: 100%;
                 max-width: 100%;
                 order: 3;
-                padding: 4px 0;
+                padding: 0; /* Clear out padding so it stays strictly inside the navbar bounds */
+                display: block; /* Changes from flex center to block layout for natural fluid scaling */
+                height: auto;
             }
 
             .search-container {
                 width: 100%; /* Removes fixed 350px container cap */
+            }
+            
+            .search-input-group {
+                width: 100%; /* Keeps the input field restricted to browser width bounds */
             }
 
             .nav-right {
