@@ -695,7 +695,69 @@
         .pdf-embed,
         .image-preview,
         .file-fallback{
-            min-height:68vh;
+            min-height:60vh;
+        }
+    }
+
+    @media (max-width: 480px){
+        .viewer-page{
+            padding:10px;
+        }
+
+        .side-rail,
+        .reader-main{
+            border-radius:16px;
+            padding:14px;
+        }
+
+        .side-title{
+            font-size:1.35rem;
+        }
+
+        /* Action buttons: bigger touch target */
+        .action-btn{
+            padding:16px;
+        }
+
+        .topline{
+            gap:6px;
+        }
+
+        .pill{
+            font-size:0.78rem;
+            padding:7px 10px;
+        }
+
+        .paper-frame,
+        .pdf-embed,
+        .image-preview,
+        .file-fallback{
+            min-height:55vh;
+        }
+
+        .viewer-body{
+            padding:10px;
+        }
+
+        .reader-footer{
+            font-size:0.8rem;
+        }
+
+        /* Gallery images: remove side padding on tiny screens */
+        .image-gallery{
+            padding:10px;
+            gap:12px;
+        }
+
+        .gallery-caption{
+            flex-direction:column;
+            align-items:flex-start;
+            gap:8px;
+        }
+
+        .card-download-btn{
+            width:100%;
+            justify-content:center;
         }
     }
 
@@ -848,7 +910,7 @@
                             src="{{ record.file.url }}" class="pdf-embed"
                             title="{{ record.title }}"
                             loading="lazy"
-                            style="width: 100%; height: 600px; border: none;"
+                            style="width: 100%; height: 100%; min-height: 55vh; border: none;"
                         ></iframe>
                         {% elif image_attachments %}
                             <div class="image-gallery">

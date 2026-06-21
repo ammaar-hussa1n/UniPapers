@@ -88,7 +88,7 @@
 
     .cta-box {
         text-align: center;
-        margin-top: 40px; /* Reduced from 80px */
+        margin-top: 40px;
         padding: 40px;
         border-top: 1px solid #eee;
     }  
@@ -97,7 +97,6 @@
         margin-bottom: 25px;
     }
 
-    /* Matching the green button from your navbar */
     .btn-primary-custom {
         background: #168a45;
         color: white;
@@ -126,12 +125,14 @@
         align-items: center;
         justify-content: center;
         gap: 20px;
-        margin: 40px auto; /* Reduced margin to keep it compact */
+        margin: 40px auto;
         padding: 15px 30px;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
         width: fit-content;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .contact-strip-content {
@@ -145,7 +146,7 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: #168a45; /* Your signature green */
+        color: #168a45;
         background: rgba(22, 138, 69, 0.1);
         padding: 2px 8px;
         border-radius: 4px;
@@ -162,6 +163,60 @@
     .strip-email:hover {
         color: #168a45;
     }
+
+    @media(max-width:640px){
+        .about-container{
+            padding:0 16px;
+            margin:24px auto 40px;
+        }
+
+        .about-hero{
+            margin-bottom:40px;
+        }
+
+        .about-logo{
+            width:160px;
+            height:160px;
+        }
+
+        .about-hero h1{
+            font-size:clamp(26px, 8vw, 40px);
+        }
+
+        .about-hero p{
+            font-size:15px;
+        }
+
+        .mission-section{
+            padding:24px 16px;
+            margin-bottom:36px;
+        }
+
+        .features-grid{
+            gap:16px;
+            margin-top:24px;
+        }
+
+        .feature-card{
+            padding:20px 16px;
+        }
+
+        .contact-strip{
+            flex-direction:column;
+            width:100%;
+            padding:14px 16px;
+            gap:8px;
+        }
+
+        .cta-box{
+            padding:24px 8px;
+        }
+
+        .btn-primary-custom{
+            padding:12px 22px;
+            font-size:15px;
+        }
+    }
 </style>
 
 <div class="about-container">
@@ -175,8 +230,8 @@
         <p>
             To make past academic exam papers accessible to every student. 
             By providing a structured, searchable database of past papers from different universities, we empower students 
-            to study smarter and perform better. This website is built by a student, for students, which will also be mantained by students
-            of different universites accross Pakistan.
+            to study smarter and perform better. This website is built by a student, for students, which will also be maintained by students
+            of different universities across Pakistan.
         </p>
     </div>
 
@@ -187,7 +242,7 @@
         </div>
         <div class="feature-card">
             <h3>Community Driven</h3>
-            <p>Built by a student, for students. Our repository grows every day thanks to contributions from users accross different universities.</p>
+            <p>Built by a student, for students. Our repository grows every day thanks to contributions from users across different universities.</p>
         </div>
         <div class="feature-card">
             <h3>Completely Free</h3>
@@ -197,7 +252,7 @@
 
     <div class="contact-strip">
         <div class="contact-strip-content">
-            <span class="strip-label">Contact : </span>
+            <span class="strip-label">Contact:</span>
             <a href="mailto:unipapers.contact@gmail.com" class="strip-email">unipapers.contact@gmail.com</a>
         </div>
     </div>

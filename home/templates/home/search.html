@@ -484,6 +484,50 @@
             padding-top:0;
         }
     }
+
+    /* Prevent filter menus from overflowing the viewport on small screens */
+    @media(max-width:640px){
+        .search-page{
+            padding:24px 0;
+        }
+
+        .filter-bar{
+            gap:8px;
+        }
+
+        /* Pin menu to the left edge of its trigger instead of centering */
+        .filter-menu{
+            left:0;
+            transform:none;
+            width:min(320px, calc(100vw - 32px));
+            max-width:calc(100vw - 32px);
+        }
+
+        .results-count{
+            font-size:15px;
+        }
+
+        .pdf-stats{
+            font-size:12px;
+            gap:8px;
+        }
+
+        .pdf-title{
+            font-size:17px;
+        }
+
+        .pdf-description{
+            font-size:14px;
+        }
+
+        .pdf-upload{
+            font-size:12px;
+        }
+
+        .pdf-thumbnail{
+            height:160px;
+        }
+    }
 </style>
 
 <div class="search-page">

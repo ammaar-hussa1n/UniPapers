@@ -347,6 +347,53 @@
             padding: 20px;
         }
     }
+
+    @media (max-width: 600px) {
+        .upload-page {
+            padding: 24px 16px 40px;
+        }
+
+        .upload-form {
+            padding: 16px;
+            border-radius: 16px;
+        }
+
+        /* Bigger touch targets for radio choices */
+        .choice {
+            padding: 14px 16px;
+            min-height: 52px;
+        }
+
+        .choice-row {
+            gap: 8px;
+        }
+
+        /* Submit button full-width on small screens */
+        .form-footer {
+            justify-content: stretch;
+        }
+
+        .submit-btn {
+            width: 100%;
+            text-align: center;
+            padding: 16px;
+        }
+
+        /* Larger tap area for file picker */
+        .upload-file {
+            min-height: 60px;
+        }
+
+        .upload-file-button {
+            padding: 12px 16px;
+        }
+
+        /* Inputs: ensure enough height for comfortable typing */
+        .control,
+        .typeahead-input {
+            min-height: 52px;
+        }
+    }
 </style>
 
 <section class="upload-page">

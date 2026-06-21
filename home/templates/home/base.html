@@ -445,6 +445,17 @@
             color: #168a45;
         }
 
+        .footer-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 40px;
+            border-top: 1px solid #e5e7eb;
+            background: #fff;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
         .profile-icon-btn {
             width: 40px;
             height: 40px;
@@ -500,7 +511,7 @@
 
         @media (max-width: 768px) {
             .navbar {
-                grid-template-columns: auto 1fr; /* Switch to 2 columns on mobile */
+                grid-template-columns: auto 1fr;
                 padding: 0 15px;
                 height: auto;
                 min-height: auto;
@@ -510,13 +521,13 @@
             }
 
             .nav-center {
-                grid-column: span 2; /* Force search bar to drop cleanly onto its own row */
+                grid-column: span 2;
                 width: 100%;
                 order: 3;
             }
 
             .search-container {
-                width: 100%; /* Let search container take full screen width */
+                width: 100%;
             }
 
             .nav-left {
@@ -524,7 +535,7 @@
             }
 
             .nav-right {
-                gap: 10px;
+                gap: 8px;
             }
 
             .download-btn {
@@ -532,22 +543,40 @@
                 font-size: 13px;
             }
 
-            .footer-navbar {
-                display: flex;
-                flex-direction: column; /* Stack the footer items vertically */
-                height: auto;
-                padding: 20px 15px;
-                gap: 15px;
-                text-align: center;
+            /* Dropdown menus must not overflow the viewport on mobile */
+            .dropdown-menu {
+                width: min(420px, calc(100vw - 30px));
+                left: 50%;
+                transform: translateX(-50%);
             }
 
-            .footer-navbar .nav-left, 
-            .footer-navbar .nav-center, 
-            .footer-navbar .nav-right {
-                justify-self: center;
-                align-items: center;
+            .footer-navbar {
                 flex-direction: column;
-                gap: 5px;
+                align-items: flex-start;
+                padding: 16px;
+                gap: 10px;
+            }
+
+            .footer-navbar .nav-left,
+            .footer-navbar .nav-center,
+            .footer-navbar .nav-right {
+                width: 100%;
+            }
+        }
+
+        /* Extra-small screens (iPhone SE, Galaxy A series) */
+        @media (max-width: 400px) {
+            .download-btn {
+                padding: 7px 9px;
+                font-size: 12px;
+            }
+
+            .brand-text {
+                font-size: 1rem;
+            }
+
+            .nav-logo {
+                height: 26px;
             }
         }
     </style>
