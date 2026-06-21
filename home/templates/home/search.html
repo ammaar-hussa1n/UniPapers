@@ -487,22 +487,17 @@
         }
 
         .filter-menu {
+            /* Default: Anchor cleanly to the left edge of its button */
+            left: 0;
+            right: auto;
             transform: none; 
             width: calc(100vw - 32px); 
-            max-width: 280px; 
+            max-width: 290px; 
             padding: 14px;
         }
 
-        /* 1. Default: Left-most filters (like University) anchor to the left edge */
-        .filter-dropdown .filter-menu {
-            left: 0;
-            right: auto;
-        }
-
-        /* 2. Fix Right-Side Bleed: Explicitly anchor Semester, Program, and Year to the right edge */
-        .filter-dropdown:nth-of-type(2) .filter-menu, /* Semester */
-        .filter-dropdown:nth-of-type(3) .filter-menu, /* Program */
-        .filter-dropdown:last-of-type .filter-menu {   /* Year / Last element */
+        /* Dynamically applied by JavaScript if the menu clips out on the right */
+        .filter-menu.is-overflowing-right {
             left: auto;
             right: 0;
         }
@@ -821,6 +816,35 @@
             const value = event.currentTarget.dataset.filterValue;
             updateFilter(key, value);
         });
+    });
+
+    // --- Dynamic Mobile Screen Boundary Adjustment ---
+    const dropdowns = document.querySelectorAll('.filter-dropdown');
+
+    function checkDropdownBoundaries() {
+        if (window.innerWidth > 900) return; // Only execute tracking on mobile/tablet widths
+
+        dropdowns.forEach(dropdown => {
+            const menu = dropdown.querySelector('.filter-menu');
+            if (!menu) return;
+
+            // Temporarily reset position to calculate the original browser placement
+            menu.classList.remove('is-overflowing-right');
+
+            const menuRect = menu.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+
+            // If the right edge of the menu spills past the screen width edge
+            if (menuRect.right > windowWidth) {
+                menu.classList.add('is-overflowing-right');
+            }
+        });
+    }
+
+    // Recalculate positions right when someone hovers or focuses on a dropdown row
+    dropdowns.forEach(dropdown => {
+        dropdown.addEventListener('mouseenter', checkDropdownBoundaries);
+        dropdown.addEventListener('focusin', checkDropdownBoundaries);
     });
 </script>
 {% endblock %}
