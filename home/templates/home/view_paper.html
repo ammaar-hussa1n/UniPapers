@@ -1024,17 +1024,6 @@
         showToast('Download started');
     }
 
-    function saveFile() {
-        const storageKey = 'saved_' + paperId;
-        if (localStorage.getItem(storageKey)) {
-            showToast('Already saved to this browser');
-            return;
-        }
-
-        localStorage.setItem(storageKey, 'true');
-        showToast('Paper saved locally');
-    }
-
     async function shareFile() {
         try {
             if (navigator.share) {

@@ -1,8 +1,6 @@
 from pathlib import Path
 import re
-import html
 import os
-from django.conf import settings
 import uuid
 import mimetypes
 from django.http import FileResponse, Http404, HttpResponseBadRequest
@@ -23,18 +21,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django_ratelimit.decorators import ratelimit
 from .models import *
 from PIL import Image
-import requests
 import io
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.core.exceptions import ValidationError
 from django.utils.html import strip_tags
 from home.catalog import AVAILABLE_UNIVERSITIES, AVAILABLE_PROGRAMS, AVAILABLE_COURSES
 from .forms import *
 
-try:
-    import magic #put it in REQUIRMENTS.TXT python-magic==0.4.27
-except ImportError:
-    magic = None
+# File-type validation is done by _sniff_mime_from_signature() below — a
+# dependency-free byte-signature check (no libmagic/python-magic needed).
 
 #Update AVAILABLE_COURSES , AVAILABLE_PROGRAMS, and AVAILABLE_UNIVERSITIES in FORMS.PY also
 
@@ -217,15 +211,35 @@ def _get_or_create_normalized_course(uni, semester, program, course_name, year, 
         session=session,
     )
 
+def _sniff_mime_from_signature(initial_bytes):
+    """Dependency-free file-type check via "magic number" bytes.
+
+    Fallback for when libmagic is unavailable. This is just a few byte
+    comparisons on the first 2 KB already held in memory: negligible CPU,
+    no GPU, no extra system libraries.
+    """
+    if not initial_bytes:
+        return None
+
+    if initial_bytes[:3] == b'\xff\xd8\xff':
+        return 'image/jpeg'
+    if initial_bytes[:8] == b'\x89PNG\r\n\x1a\n':
+        return 'image/png'
+    if initial_bytes[:2] == b'BM':
+        return 'image/bmp'
+    if initial_bytes[:4] == b'RIFF' and initial_bytes[8:12] == b'WEBP':
+        return 'image/webp'
+    if b'%PDF' in initial_bytes[:1024]:
+        return 'application/pdf'
+
+    return None
+
 def _detect_uploaded_file_mime(uploaded_file):
     uploaded_file.seek(0)
     initial_bytes = uploaded_file.read(2048)
     uploaded_file.seek(0)
 
-    if magic is None:
-        return None
-
-    return magic.from_buffer(initial_bytes, mime=True)
+    return _sniff_mime_from_signature(initial_bytes)
 
 def _validate_uploaded_file(uploaded_file):
     """Reject oversized, unexpected, or spoofed uploads using binary inspection."""
@@ -239,7 +253,10 @@ def _validate_uploaded_file(uploaded_file):
 
     detected_mime = _detect_uploaded_file_mime(uploaded_file)
 
-    if detected_mime and (detected_mime not in ALLOWED_UPLOAD_MIME_TYPES):
+    # The signature sniff only returns one of the allowed types or None, so a
+    # None result means the real bytes don't match the extension — reject it
+    # instead of trusting the (spoofable) file name.
+    if not detected_mime or detected_mime not in ALLOWED_UPLOAD_MIME_TYPES:
         return 'Unsupported file type.'
 
     return None
@@ -249,14 +266,10 @@ def _is_image_uploaded_file(uploaded_file):
         return False
 
     detected_mime = _detect_uploaded_file_mime(uploaded_file)
-    
-    # 1. If magic worked perfectly, validate against your strict list
-    if detected_mime is not None:
-        return detected_mime in IMAGE_UPLOAD_MIME_TYPES
 
-    # 2. SOFT CHECK BYPASS: If magic failed (returned None), use Django's native check!
-    django_mime = getattr(uploaded_file, 'content_type', '').lower()
-    return django_mime in IMAGE_UPLOAD_MIME_TYPES or django_mime.startswith('image/')
+    # The byte-signature sniff returns a definite image type or None; we no
+    # longer trust the client-supplied content_type (which is spoofable).
+    return detected_mime in IMAGE_UPLOAD_MIME_TYPES
 
 def _build_multi_image_storage_name(batch_id, index, original_name):
     return f'upload_{batch_id}_{index}{Path(original_name).suffix.lower()}'
@@ -597,6 +610,7 @@ def view(request, paper_id, paper_title=None):
     return render(request, 'home/view_paper.html', {
         'record': record,
         'file_name': file_name,
+        'file_url': record.file.url if record.file else '',
         'is_pdf': record.is_pdf,
         'is_image': record.is_image,
         'image_attachments': image_attachments,
@@ -671,9 +685,6 @@ def compress_image(uploaded_image):
 def upload(request):
     """Render the upload form or save a paper submission from the form POST."""
     if request.method == 'POST':
-        if getattr(request, 'limited', False):
-            messages.error(request, 'You can only upload 5 files every minute.')
-            return redirect('upload')
 
         form = AcademicUploadForm(request.POST)
 
@@ -816,7 +827,7 @@ def profile(request):
 
     status = _clean_text_input(form.cleaned_data.get('status'))
     view_mode = _clean_text_input(form.cleaned_data.get('view') or 'uploaded').lower() #also change
-    page_number = form.cleaned_data.get('page_number') or 1 
+    page = form.cleaned_data.get('page') or 1 
 
     if view_mode not in ['saved', 'uploaded']:
         return HttpResponseBadRequest("Invalid View")
@@ -845,10 +856,10 @@ def profile(request):
 
     if not form.is_valid():
         # If they inject an integer larger than 9999 or trash text, the form catches it
-        page_number = 1
+        page = 1
     else:
-        page_number = form.cleaned_data.get('page') or 1
-    records = paginator.get_page(page_number)
+        page = form.cleaned_data.get('page') or 1
+    records = paginator.get_page(page)
 
     _attach_preview_metadata(records)
 
@@ -867,7 +878,7 @@ def profile(request):
         'records': records,
         'approved_count': approved_count,
         'paginator': paginator,
-        'page_number': page_number,
+        'page': page,
         'pending_count': pending_count,
         'is_admin': is_admin,
         'saved_count': saved_count,
@@ -888,10 +899,6 @@ def profile(request):
 @login_required(login_url='account_login')
 def delete_record(request, paper_id):
     """Delete one of the current user's uploaded papers."""
-
-    if getattr(request, 'limited', False):
-            messages.error(request, 'You can only delete 3 papers every minute.')
-            return redirect('profile')
 
     record = get_object_or_404(Record.objects.select_related('course__uni'), pk=paper_id)
     if record.uploaded_email == request.user.email:
@@ -953,9 +960,6 @@ def about(request):
 
 @ratelimit(key='user_or_ip', rate='3/m', method='POST', block=True)
 def login_page(request):
-    if getattr(request, 'limited', False):
-            messages.error(request, 'You can only login 3 times every minute.')
-            return redirect('account_login')
 
     form = LoginRedirectForm(request.POST or request.GET)
     if form.is_valid():

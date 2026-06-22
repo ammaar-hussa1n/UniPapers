@@ -33,9 +33,10 @@ cloudinary.config(
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'unsafe-dev-key')
 
-
-# Checks if running live on Vercel. If not, it defaults to TRUE for smooth local testing!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+if not DEBUG and SECRET_KEY == 'unsafe-dev-key':
+    raise RuntimeError("SECRET_KEY environment variable is not set in production.")
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -157,6 +158,12 @@ if not DEBUG:
             ssl_require=True
         )
     }
+
+    SECURE_HSTS_SECONDS = 31536000           # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
@@ -284,22 +291,38 @@ ACCOUNT_RATE_LIMITS = {
 
 
 # Content Security Policy (CSP) Configurations
-CSP_DEFAULT_SRC = ("'self'",)
+# django-csp 4.x reads this single dict; the old CSP_* settings are ignored by v4.
+CONTENT_SECURITY_POLICY = {
+    "DIRECTIVES": {
+        "default-src": ["'self'"],
 
-# Trust scripts coming from your server and Bootstrap's CDN
-CSP_SCRIPT_SRC = ("'self'", "https://cdn.jsdelivr.net", "'unsafe-inline'")
+        # Trust scripts coming from your server and Bootstrap's CDN.
+        "script-src": ["'self'", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
 
-# Trust styles from your server, Bootstrap, and Google Fonts
-CSP_STYLE_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com", "'unsafe-inline'")
+        # Trust styles from your server, Bootstrap, and Google Fonts.
+        "style-src": ["'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com", "'unsafe-inline'"],
 
-# Trust fonts from Google
-CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
+        # Trust fonts from Google.
+        "font-src": ["'self'", "https://fonts.gstatic.com"],
 
-# Trust images from your local system and Cloudinary (since you're deploying there later)
-CSP_IMG_SRC = ("'self'", "data:", "https://res.cloudinary.com")
+        # Trust images from your local system and Cloudinary.
+        "img-src": ["'self'", "data:", "https://res.cloudinary.com"],
 
-# Lock down clickjacking protection completely
-CSP_FRAME_ANCESTORS = ("'self'",)
+        # The mobile PDF preview loads PDF.js from jsDelivr and runs its
+        # worker, which is fetched cross-origin and spawned from a blob: URL.
+        "worker-src": ["'self'", "blob:", "https://cdn.jsdelivr.net"],
+
+        # The desktop PDF preview fetches the file through the same-origin
+        # preview proxy; PDF.js also fetches its worker script from jsDelivr.
+        "connect-src": ["'self'", "https://cdn.jsdelivr.net"],
+
+        # The desktop preview points the <iframe> at an in-memory blob: URL.
+        "frame-src": ["'self'", "blob:"],
+
+        # Lock down clickjacking protection completely.
+        "frame-ancestors": ["'self'"],
+    },
+}
 
 
 # Reject large uploads before they reach the view layer.
