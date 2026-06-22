@@ -859,7 +859,6 @@
                                         <figcaption class="gallery-caption">
                                             <div class="gallery-caption-left">
                                                 <span>Image {{ forloop.counter }}</span>
-                                                <span class="gallery-badge">{{ attachment.name|cut:"vault/pending/" }}</span>
                                             </div>
                                             <button class="card-download-btn" type="button" onclick="downloadFile('{{ attachment.url|escapejs }}', '{{ attachment.name|escapejs }}')">
                                                 <span>↓ Download</span>
