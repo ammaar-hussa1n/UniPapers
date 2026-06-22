@@ -1,11 +1,8 @@
-# home/forms.py
 from django import forms
 from home.catalog import *
 from django.core.validators import MinValueValidator, MaxValueValidator
-# 1. Imported your models directly so the forms can run queries
-from .models import Uni, Course 
+from .models import Uni, Course
 
-# Keep static structural definitions intact
 SEMESTER_CHOICES = [
     ('1st Semester', '1st Semester'),
     ('2nd Semester', '2nd Semester'),
@@ -33,7 +30,6 @@ REPORTED_REASONS = [
 
 REPORT_CHOICES = [(reason, reason) for reason in REPORTED_REASONS]
 
-
 class AcademicUploadForm(forms.Form):
     title = forms.CharField(max_length=255, min_length=2, strip=True, required=True)
     year = forms.IntegerField(validators=[MinValueValidator(2000), MaxValueValidator(2030)], required=True)
@@ -42,10 +38,8 @@ class AcademicUploadForm(forms.Form):
     semester = forms.ChoiceField(choices=SEMESTER_CHOICES, required=True)
     term = forms.ChoiceField(choices=TERM_CHOICES, required=True)
     
-    # 2. Changed university to pull directly from your Uni database table
     university = forms.CharField(required=False, strip=True)
-    
-    # 3. Changed program to start blank and populate dynamically
+
     program = forms.ChoiceField(choices=[], required=True)
 
     def __init__(self, *args, **kwargs):
@@ -59,11 +53,9 @@ class AcademicUploadForm(forms.Form):
             (p, p) for p in sorted(programs)
         ]
 
-
 class SearchValidationForm(forms.Form):
     q = forms.CharField(max_length=100, required=False, strip=True)
-    
-    # Restored Uni reference (Fixed NameError)
+
     university = forms.CharField(required=False, strip=True)
     semester = forms.ChoiceField(choices=[('', 'All Semesters')] + SEMESTER_CHOICES, required=False)
     year = forms.IntegerField(validators=[MinValueValidator(2000), MaxValueValidator(2030)], required=False)
@@ -71,7 +63,6 @@ class SearchValidationForm(forms.Form):
     course_name = forms.CharField(max_length=255, required=False, strip=True)
     status = forms.ChoiceField(choices=[('', 'All Statuses'), ('Pending', 'Pending'), ('Approved', 'Approved')], required=False)
     
-    # 4. Changed program to dynamic lookup
     program = forms.ChoiceField(choices=[], required=False)
 
     def __init__(self, *args, **kwargs):
@@ -109,21 +100,17 @@ class SearchValidationForm(forms.Form):
             return 1
         return page
 
-
 class ReportPaperForm(forms.Form):
     reported_reason = forms.ChoiceField(
         choices=REPORT_CHOICES,
         error_messages={'invalid_choice': 'Please select a valid reason from the dropdown.'}
     )
 
-
 class ViewPaperActionForm(forms.Form):
     action = forms.ChoiceField(choices=[('report', 'report'), ('toggle_save', 'toggle_save')])
 
-
 class LoginRedirectForm(forms.Form):
     next = forms.CharField(required=False, max_length=2048, strip=True)
-
 
 class ProfileDashboardFilterForm(forms.Form):
     status = forms.ChoiceField(choices=[('', 'All'), ('Approved', 'Approved'), ('Pending', 'Pending')], required=False)

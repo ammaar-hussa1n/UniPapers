@@ -88,7 +88,7 @@
 
     .cta-box {
         text-align: center;
-        margin-top: 40px; /* Reduced from 80px */
+        margin-top: 40px;
         padding: 40px;
         border-top: 1px solid #eee;
     }  
@@ -97,7 +97,6 @@
         margin-bottom: 25px;
     }
 
-    /* Matching the green button from your navbar */
     .btn-primary-custom {
         background: #168a45;
         color: white;
@@ -126,7 +125,7 @@
         align-items: center;
         justify-content: center;
         gap: 20px;
-        margin: 40px auto; /* Reduced margin to keep it compact */
+        margin: 40px auto;
         padding: 15px 30px;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
@@ -145,7 +144,7 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: #168a45; /* Your signature green */
+        color: #168a45;
         background: rgba(22, 138, 69, 0.1);
         padding: 2px 8px;
         border-radius: 4px;
@@ -163,11 +162,9 @@
         color: #168a45;
     }
 
-    /* Keep the contact strip inside the screen on phones and let the email wrap.
-       Desktop layout stays unchanged. */
     @media (max-width: 768px) {
         .contact-strip {
-            width: auto;            /* Stop sizing to content so it can't exceed the screen */
+            width: auto;
             max-width: 100%;
             gap: 12px;
             padding: 15px 18px;
@@ -175,13 +172,13 @@
         }
 
         .contact-strip-content {
-            flex-wrap: wrap;        /* Drop the email to its own line if needed */
+            flex-wrap: wrap;
             justify-content: center;
             min-width: 0;
         }
 
         .strip-email {
-            overflow-wrap: anywhere; /* Break the long email instead of overflowing */
+            overflow-wrap: anywhere;
         }
     }
 </style>

@@ -27,13 +27,7 @@ from django.utils.html import strip_tags
 from home.catalog import AVAILABLE_UNIVERSITIES, AVAILABLE_PROGRAMS, AVAILABLE_COURSES
 from .forms import *
 
-# File-type validation is done by _sniff_mime_from_signature() below — a
-# dependency-free byte-signature check (no libmagic/python-magic needed).
 
-#Update AVAILABLE_COURSES , AVAILABLE_PROGRAMS, and AVAILABLE_UNIVERSITIES in FORMS.PY also
-
-
-# These lists feed the search filters in the template.
 SEARCH_UNIVERSITY_FILTERS = list(AVAILABLE_UNIVERSITIES.values())
 
 SEARCH_SEMESTER_FILTERS = [
@@ -84,8 +78,6 @@ REPORT_REASON_CHOICES = [
     'Button(s) not working',
 ]
 
-# errors #
-
 @ratelimit(key='user_or_ip', rate='50/m', block=True)
 def error_404_view(request, exception):
     context = {
@@ -121,8 +113,6 @@ def error_400_view(request, exception=None):
         'description': 'Your browser sent a request that this server could not understand or process. Try again later or contact the developer if the issue persists.'
     }
     return render(request, 'home/errors.html', context, status=400)
-
-# errors #
 
 def _clean_text_input(value):
     if value is None:
@@ -168,11 +158,10 @@ def _get_or_create_normalized_course(uni, semester, program, course_name, year, 
     semester = _clean_text_input(semester)
     program = _clean_text_input(program)
     course_name = _clean_text_input(course_name)
-    # 1. Convert incoming year string into a clean Python integer
     try:
         year_int = int(str(year).strip())
     except (ValueError, TypeError):
-        year_int = 2026 # Fallback default if parsing fails
+        year_int = 2026
 
     term = _clean_text_input(term)
     session = _clean_text_input(session)
@@ -182,7 +171,6 @@ def _get_or_create_normalized_course(uni, semester, program, course_name, year, 
             normalized_semester=Lower(Trim('semester')),
             normalized_program=Lower(Trim('program')),
             normalized_course_name=Lower(Trim('course_name')),
-            # 2. REMOVED Lower(Trim()) from here because database column 'year' is an Integer!
             normalized_term=Lower(Trim('term')),
             normalized_session=Lower(Trim('session')),
         )
@@ -191,7 +179,7 @@ def _get_or_create_normalized_course(uni, semester, program, course_name, year, 
             normalized_semester=semester.casefold(),
             normalized_program=program.casefold(),
             normalized_course_name=course_name.casefold(),
-            year=year_int,  # 3. Match the clean integer directly
+            year=year_int,
             normalized_term=term.casefold(),
             normalized_session=session.casefold(),
         )
@@ -206,7 +194,7 @@ def _get_or_create_normalized_course(uni, semester, program, course_name, year, 
         semester=semester,
         program=program,
         course_name=course_name,
-        year=year_int,  # 4. Save clean integer
+        year=year_int,
         term=term,
         session=session,
     )
@@ -253,9 +241,6 @@ def _validate_uploaded_file(uploaded_file):
 
     detected_mime = _detect_uploaded_file_mime(uploaded_file)
 
-    # The signature sniff only returns one of the allowed types or None, so a
-    # None result means the real bytes don't match the extension — reject it
-    # instead of trusting the (spoofable) file name.
     if not detected_mime or detected_mime not in ALLOWED_UPLOAD_MIME_TYPES:
         return 'Unsupported file type.'
 
@@ -267,8 +252,6 @@ def _is_image_uploaded_file(uploaded_file):
 
     detected_mime = _detect_uploaded_file_mime(uploaded_file)
 
-    # The byte-signature sniff returns a definite image type or None; we no
-    # longer trust the client-supplied content_type (which is spoofable).
     return detected_mime in IMAGE_UPLOAD_MIME_TYPES
 
 def _build_multi_image_storage_name(batch_id, index, original_name):
@@ -304,7 +287,6 @@ def _get_multi_image_attachments(record):
     """
     attachments_data = []
 
-    # 1. ONLY append the primary record file if it is NOT a PDF
     if record.file and getattr(record, 'file_extension', '') != '.pdf':
         attachments_data.append({
             'path': record.file.name,
@@ -313,7 +295,6 @@ def _get_multi_image_attachments(record):
             'title': record.title,
         })
 
-    # 2. Query the secondary pages from your relation table
     secondary_attachments = record.attachments.all()
     
     for attachment in secondary_attachments:
@@ -391,7 +372,6 @@ def _build_compact_page_window(paginator, current_page_number, window_size=9):
 
 def _prepare_record_preview(record):
     """Attach preview flags and excerpt text used across paper cards and the detail page."""
-    # Use our newly added database field instead of guessing from record.file.name
     file_ext = record.file_extension if record.file_extension else ''
     
     record.file_ext = file_ext
@@ -416,7 +396,6 @@ def search(request):
     """Show all papers that match the current search filters."""
     form = SearchValidationForm(request.GET)
     if not form.is_valid():
-            # If an unexpected field shape or extreme length is injected, drop it cleanly
             messages.error(request, 'Invalid search parameters!')
             return redirect('home')
 
@@ -473,7 +452,6 @@ def search(request):
     paginator = Paginator(records, 10)
 
     if not form.is_valid():
-        # If they inject an integer larger than 9999 or trash text, the form catches it
         page_number = 1
     else:
         page_number = form.cleaned_data.get('page') or 1
@@ -558,10 +536,6 @@ def view(request, paper_id, paper_title=None):
         if reported_reason not in REPORT_REASON_CHOICES:
             messages.error(request, 'Please select a valid report reason!')
             return redirect('view_paper', paper_id=record.id, paper_title=slugify(record.title))
-    
-    ###########Correct##### no error##### dont UNDO now  safety check point WO HOO no error only security now
-                ##3######5232##oA###i 8812 #no 
-                #n doo not no error safety checko CHECK post p p p p p p p p p p p p p p pp p 
 
         if not request.user.is_authenticated:
             messages.error(request, 'You must be logged in to report a paper!')
@@ -665,14 +639,13 @@ def compress_image(uploaded_image):
     if img.mode != 'RGB':
         img = img.convert('RGB')
     
-    # Resize width to 1200px (keeps text crystal clear, drops megabytes)
     output_width = 1200
     w_percent = (output_width / float(img.size[0]))
     h_size = int((float(img.size[1]) * float(w_percent)))
     img = img.resize((output_width, h_size), Image.Resampling.LANCZOS)
     
     output_io = io.BytesIO()
-    img.save(output_io, format='JPEG', quality=75) # 75% compression factor
+    img.save(output_io, format='JPEG', quality=75)
     output_io.seek(0)
     
     return InMemoryUploadedFile(
@@ -702,7 +675,6 @@ def upload(request):
         course_name = _clean_text_input(form.cleaned_data.get('course_name'))
         term = _clean_text_input(form.cleaned_data.get('term'))
         
-        # Pull initial list for base counts and validations
         paper_files = request.FILES.getlist('paper_file')
         
         uploaded_by = request.user.get_full_name().strip() or request.user.email or request.user.get_username()
@@ -722,7 +694,6 @@ def upload(request):
             messages.error(request, 'You can upload up to 3 image files at a time.')
             return redirect('upload')
 
-        # Run your strict type validations
         if is_multi_image_upload:
             for f in paper_files:
                 if not _is_image_uploaded_file(f):
@@ -737,14 +708,9 @@ def upload(request):
 
         try:
             with transaction.atomic():
-                # ==============================================================
-                # THE CHIEF FIX: Pull a pristine copy from request.FILES right now!
-                # ==============================================================
                 pristine_files = request.FILES.getlist('paper_file')
                 primary_file = pristine_files[0]
 
-                # FAIL-SAFE RECONSTRUCTION: If Cloudinary's backend wrapper already converted 
-                # this item to a string name, wrap its raw memory stream container back up manually.
                 if isinstance(primary_file, str):
                     from django.core.files.base import ContentFile
                     raw_data = request.FILES['paper_file'].read()
@@ -773,20 +739,16 @@ def upload(request):
                 else:
                     primary_storage_name = primary_file.name
 
-                # ONLY attempt image compression if the file stream is genuinely an image asset
                 if _is_image_uploaded_file(primary_file):
                     primary_file = compress_image(primary_file)
 
-                # This line will now execute flawlessly because primary_file is a file object container
                 record.file.save(primary_storage_name, primary_file, save=False)
                 record.save()
 
                 if is_multi_image_upload and batch_id:
                     for index, paper_file in enumerate(pristine_files[1:], start=2):
-                        # Apply identical protection logic for all sub-attachments
                         if isinstance(paper_file, str):
                             from django.core.files.base import ContentFile
-                            # Accessing multi-upload indexes dynamically
                             raw_data = request.FILES.getlist('paper_file')[index-1].read()
                             paper_file = ContentFile(raw_data, name=paper_file)
 
@@ -826,7 +788,7 @@ def profile(request):
         return redirect('profile')
 
     status = _clean_text_input(form.cleaned_data.get('status'))
-    view_mode = _clean_text_input(form.cleaned_data.get('view') or 'uploaded').lower() #also change
+    view_mode = _clean_text_input(form.cleaned_data.get('view') or 'uploaded').lower()
     page = form.cleaned_data.get('page') or 1 
 
     if view_mode not in ['saved', 'uploaded']:
@@ -855,7 +817,6 @@ def profile(request):
     paginator = Paginator(records, 10)
 
     if not form.is_valid():
-        # If they inject an integer larger than 9999 or trash text, the form catches it
         page = 1
     else:
         page = form.cleaned_data.get('page') or 1
@@ -963,10 +924,9 @@ def login_page(request):
 
     form = LoginRedirectForm(request.POST or request.GET)
     if form.is_valid():
-        next_url = form.cleaned_data.get('next') or 'home'################ Gemini latest prompt DO THE CHANGESS!
+        next_url = form.cleaned_data.get('next') or 'home'
     else:
         next_url = 'home'
-    # Explicitly check if the target URL safely belongs to your website
     if not url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}):
         next_url = 'home' 
 

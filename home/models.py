@@ -16,8 +16,7 @@ def get_upload_path(instance, filename):
     ext = filename.split('.')[-1]
     clean_name = slugify('.'.join(filename.split('.')[:-1]))
     unique_filename = f"{clean_name}_{uuid.uuid4().hex[:8]}.{ext}"
-    
-    # Files remain here safely forever; state checks rely strictly on DB status fields
+
     return os.path.join('vault/papers/', unique_filename)
 
 class Uni(models.Model):
@@ -36,7 +35,6 @@ class Course(models.Model):
     session = models.CharField(max_length=20)
 
     class Meta:
-        # Ensures no identical duplicates can occupy your academic courses lookup dictionary
         unique_together = ('uni', 'semester', 'program', 'course_name', 'year', 'term', 'session')
     
     def __str__(self):
@@ -106,7 +104,6 @@ class Record(models.Model):
 
     def save(self, *args, **kwargs):
         if self.file and not self.file_extension:
-            # self.file.name at this point is the original uploaded string (e.g., 'test.pdf')
             ext = os.path.splitext(self.file.name)[1].lower()
             self.file_extension = ext
         super().save(*args, **kwargs)
@@ -114,13 +111,10 @@ class Record(models.Model):
     class Meta:
         ordering = ['-uploaded_at']
 
-# ADD THIS NEW MODEL TO TRACK EXTRA PAGES/IMAGES
 class PaperAttachment(models.Model):
-    # Links many secondary pages back to the one primary Record row
     record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name='attachments')
-    
-    # Bump the max_length here too to protect multi-file uploads!
-    file = models.FileField(upload_to=get_upload_path, max_length=500) 
+
+    file = models.FileField(upload_to=get_upload_path, max_length=500)
     uploaded_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

@@ -537,7 +537,7 @@
         padding:20px;
         background:rgba(15, 23, 42, 0.55);
         backdrop-filter:blur(8px);
-        z-index:1100; /* Sit above the sticky header (z-index:1000) so the dialog isn't clipped */
+        z-index:1100;
     }
 
     .report-modal.is-open{
@@ -665,7 +665,7 @@
         .side-rail{
             position:static;
             max-height:none;
-            align-items:stretch; /* Fill the full-width column instead of shrink-wrapping */
+            align-items:stretch;
         }
 
         .paper-frame,
@@ -727,7 +727,6 @@
         gap:10px;
     }
 
-    /* Specific component styles for individual image card download buttons */
     .card-download-btn {
         appearance: none;
         background: var(--accent-soft);
@@ -871,12 +870,6 @@
                             title="{{ record.title }}"
                             style="width: 100%; height: 600px; border: none;"
                         ></iframe>
-                        {# No initial src: the desktop script fetches the PDF once via the
-                           preview proxy and sets this iframe to that blob, avoiding a second
-                           direct-from-Cloudinary download. #}
-                        <!-- Mobile browsers can't render PDFs inside an iframe, so on touch
-                             devices we render the pages to canvas with PDF.js instead. Hidden
-                             by default; the script below shows it only on mobile. -->
                         <div id="pdfMobileRenderer" class="pdf-renderer" style="display:none;"></div>
                         {% elif image_attachments %}
                             <div class="image-gallery">
@@ -956,8 +949,6 @@
     const pdfMobileRenderer = document.getElementById('pdfMobileRenderer');
     let pdfObjectUrl = null;
 
-    // Touch devices (phones / tablets) have no embedded PDF viewer for iframes,
-    // so we detect them and render with PDF.js instead. Real desktops keep the iframe.
     const isMobileViewer = window.matchMedia('(hover: none) and (pointer: coarse)').matches
         || /Android|iPhone|iPad|iPod|Mobile|Silk/i.test(navigator.userAgent);
 
@@ -984,24 +975,19 @@
         }, 2200);
     }
 
-    // THE FIXED DOWNLOAD LOGIC
     function downloadFile(targetUrl, targetName) {
         let urlToDownload = targetUrl || fileUrl;
         const nameToSave = targetName || fileName;
 
-        // 1. If downloading the main document and we have a live working blob in memory, use it!
         if (!targetUrl && pdfObjectUrl) {
             urlToDownload = pdfObjectUrl;
         }
 
-        // 2. If it's a Cloudinary link, make sure it uses the proper delivery pipeline
         if (urlToDownload.includes('cloudinary.com')) {
-            // Fix asset type classification if it got mismatched
             if (nameToSave.toLowerCase().endsWith('.pdf') && urlToDownload.includes('/image/upload/')) {
                 urlToDownload = urlToDownload.replace('/image/upload/', '/raw/upload/');
             }
 
-            // Force automatic browser attachment behavior
             if (urlToDownload.includes('/upload/')) {
                 urlToDownload = urlToDownload.replace('/upload/', '/upload/fl_attachment/');
             } else if (urlToDownload.includes('/raw/')) {
@@ -1013,7 +999,6 @@
         link.href = urlToDownload;
         link.download = nameToSave;
         
-        // Only use blank targets for real web addresses, blobs download locally
         if (urlToDownload.startsWith('http')) {
             link.target = '_blank';
         }
@@ -1110,7 +1095,6 @@
             ));
 
             const downloadLink = document.createElement('a');
-            // Ensure fallback download button gets the upgraded logic call
             downloadLink.href = "javascript:void(0);";
             downloadLink.onclick = () => downloadFile();
             downloadLink.textContent = 'Download the file';
@@ -1123,7 +1107,6 @@
     }
 
     function showMobilePdfFallback(message) {
-        // Keep any toolbar already added, then offer a direct link to open the PDF.
         const fallback = document.createElement('div');
         fallback.className = 'file-fallback';
         fallback.appendChild(document.createTextNode(message + ' '));
@@ -1140,14 +1123,11 @@
     }
 
     async function renderPdfMobile() {
-        // The iframe has no src until the desktop path sets one (never on mobile),
-        // so just hide it and render to canvas instead.
         if (pdfRenderer) {
             pdfRenderer.style.display = 'none';
         }
         pdfMobileRenderer.style.display = 'grid';
 
-        // Slim toolbar: zoom hint + an optional native full-screen viewer.
         const bar = document.createElement('div');
         bar.className = 'pdf-mobile-bar';
 
@@ -1177,12 +1157,10 @@
             }
 
             const buffer = await response.arrayBuffer();
-            // Build the download blob from a copy before getDocument detaches the buffer.
             pdfObjectUrl = URL.createObjectURL(new Blob([buffer], { type: 'application/pdf' }));
 
             const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
             const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-            // .pdf-renderer has 20px padding on each side.
             const renderWidth = Math.max(pdfMobileRenderer.clientWidth - 40, 240);
 
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {

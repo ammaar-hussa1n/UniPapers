@@ -1,11 +1,8 @@
 from django.contrib import admin
 from allauth.account.admin import EmailAddressAdmin as AllauthEmailAddressAdmin
 from allauth.account.models import EmailAddress
-
-# Explicitly import your models (Course is included to avoid NameError)
 from .models import Uni, Record, ReportedRecord, Report, Course
 
-# --- Global Admin Layout Rules ---
 admin.ModelAdmin.list_per_page = 10
 
 def staff_status(self, obj):
@@ -19,33 +16,24 @@ AllauthEmailAddressAdmin.ordering = ('email',)
 AllauthEmailAddressAdmin.staff_status = staff_status
 AllauthEmailAddressAdmin.staff_status.short_description = 'Staff Status'
 
-
-# 1. Create a spreadsheet-like row entry grid for Courses
 class CourseInline(admin.TabularInline):
     model = Course
-    extra = 1  # Shows 1 empty blank row automatically to type into
+    extra = 1
     fields = ('program', 'semester', 'course_name', 'year', 'term', 'session')
 
-
-# 2. Attach the inline layout grid to your University Admin page
 @admin.register(Uni)
 class UniAdmin(admin.ModelAdmin):
     list_display = ('id', 'uni_name')
     search_fields = ('uni_name',)
-    
-    # This embeds the entire course catalog matrix right inside the Uni view page
+
     inlines = [CourseInline]
 
-
-# 3. Also register Course separately so you can look at them as a master list if needed
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('course_name', 'uni', 'program', 'semester', 'year', 'term')
     list_filter = ('uni', 'program', 'semester', 'year', 'term')
     search_fields = ('course_name', 'program', 'semester')
 
-
-# --- Dynamic Report Compiling Logic Mixin ---
 class DynamicReportMixin:
     """
     Forces the 'msg' text field on the edit form to contain all strings from 
@@ -54,28 +42,22 @@ class DynamicReportMixin:
     def get_form(self, request, obj=None, **kwargs):
         if obj and obj.reports.exists():
             compiled_messages = [r.message for r in obj.reports.all()]
-            
-            # This forces the model instance field to hold the string block right before the form builds
+
             obj.msg = "\n".join(compiled_messages)
             
         return super().get_form(request, obj, **kwargs)
 
     def save_model(self, request, obj, form, change):
-        # Read the text box value directly out of the submitted form
         submitted_msg = form.cleaned_data.get('msg', '')
-        
+
         if change and not submitted_msg:
-            # If you completely cleared the text box, wipe out the related backend logs
             obj.reports.all().delete()
             obj.msg = ""
         else:
-            # Otherwise, keep whatever text editing you did
             obj.msg = submitted_msg
             
         super().save_model(request, obj, form, change)
 
-
-# --- Updated Record Admin ---
 @admin.register(Record)
 class RecordAdmin(DynamicReportMixin, admin.ModelAdmin):
     list_per_page = 10
@@ -88,7 +70,6 @@ class RecordAdmin(DynamicReportMixin, admin.ModelAdmin):
     search_fields = ('title', 'course__uni__uni_name', 'course__program', 'course__semester', 'course__course_name', 'course__year', 'course__term', 'course__session', 'status', 'uploaded_by', 'uploaded_email', 'reports__message')
     ordering = ('-uploaded_at',)
 
-    # --- Relational Data Getters ---
     @admin.display(ordering='course__uni__uni_name', description='University')
     def get_uni(self, obj):
         return obj.course.uni.uni_name if obj.course and obj.course.uni_id else '-'
@@ -116,8 +97,6 @@ class RecordAdmin(DynamicReportMixin, admin.ModelAdmin):
             return latest_report.message[:80]
         return '-'
 
-
-# --- Updated ReportedRecord Proxy Admin ---
 @admin.register(ReportedRecord)
 class ReportedRecordAdmin(DynamicReportMixin, admin.ModelAdmin):
     list_per_page = 10
@@ -131,7 +110,6 @@ class ReportedRecordAdmin(DynamicReportMixin, admin.ModelAdmin):
         qs = super().get_queryset(request)
         return qs.filter(reports__isnull=False).distinct()
 
-    # --- Relational Data Getters ---
     @admin.display(ordering='course__uni__uni_name', description='University')
     def get_uni(self, obj):
         return obj.course.uni.uni_name if obj.course and obj.course.uni_id else '-'
@@ -140,7 +118,6 @@ class ReportedRecordAdmin(DynamicReportMixin, admin.ModelAdmin):
     def get_course(self, obj):
         return obj.course.course_name if obj.course else '-'
 
-    # --- Restored Counter ---
     @admin.display(description='Total Reports')
     def total_reports(self, obj):
         return obj.reports.count()

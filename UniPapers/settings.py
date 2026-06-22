@@ -94,16 +94,15 @@ ACCOUNT_LOGOUT_ON_GET = False
 SOCIALACCOUNT_ONLY = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
-SOCIALACCOUNT_AUTO_SIGNUP = True  # Create the user automatically
+SOCIALACCOUNT_AUTO_SIGNUP = True
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-SOCIALACCOUNT_QUERY_EMAIL = True # Ensure we ask Google for the email
+SOCIALACCOUNT_QUERY_EMAIL = True
 
 SOCIALACCOUNT_STORE_TOKENS = True
-# This ensures allauth handles the email retrieval correctly
 SOCIALACCOUNT_EMAIL_REQUIRED = True
-SOCIALACCOUNT_EMAIL_VERIFICATION = "none" # Use "none" to prevent allauth from sending its own verification emails
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 
 LOGIN_URL = 'account_login'
 
@@ -116,7 +115,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {
             'access_type': 'online',
         },
-        'OAUTH_PKCE_ENABLED': True, # Enhances OAuth security flow
+        'OAUTH_PKCE_ENABLED': True,
     }
 }
 
@@ -128,7 +127,7 @@ ROOT_URLCONF = 'UniPapers.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], # Make sure this points to your templates folder
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -147,10 +146,7 @@ WSGI_APPLICATION = 'UniPapers.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 
-# Connectors
-# Connectors
 if not DEBUG:
-    # Production cloud setup
     DATABASES = {
         'default': dj_database_url.config(
             default=os.environ.get('DATABASE_URL'),
@@ -159,7 +155,7 @@ if not DEBUG:
         )
     }
 
-    SECURE_HSTS_SECONDS = 31536000           # 1 year
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -178,7 +174,6 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     MEDIA_URL = '/media/'
 else:
-    # Local development uses environment variable if available, fallback to local DB
     DATABASES = {
         'default': dj_database_url.config(
             default='postgresql://postgres:postgres@localhost:5432/unipapers_db',
@@ -186,11 +181,9 @@ else:
             ssl_require=False
         )
     }
-    # Keep files local while you are developing at home!
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / "media"
-    
-# Force Django to maintain active file object streams during complex validation cycles
+
 FILE_UPLOAD_HANDLERS = [
     "django.core.files.uploadhandler.MemoryFileUploadHandler",
     "django.core.files.uploadhandler.TemporaryFileUploadHandler",
@@ -260,8 +253,6 @@ CACHES = {
 }
 RATELIMIT_USE_CACHE = 'default'
 
-# Log unhandled 500 tracebacks to the console (Railway/Render Logs tab) even when
-# DEBUG is False. Django's default config hides these unless DEBUG is True.
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -283,48 +274,34 @@ LOGGING = {
     },
 }
 
-# Secure authentication rate limits handled natively by django-allauth
 ACCOUNT_RATE_LIMITS = {
-    'login_failed': '30/m', # Blocks brute force password guessing 
-    'signup': '10/m',       # Blocks bot accounts creation spamming
+    'login_failed': '30/m',
+    'signup': '10/m',
 }
 
 
-# Content Security Policy (CSP) Configurations
-# django-csp 4.x reads this single dict; the old CSP_* settings are ignored by v4.
 CONTENT_SECURITY_POLICY = {
     "DIRECTIVES": {
         "default-src": ["'self'"],
 
-        # Trust scripts coming from your server and Bootstrap's CDN.
         "script-src": ["'self'", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
 
-        # Trust styles from your server, Bootstrap, and Google Fonts.
         "style-src": ["'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com", "'unsafe-inline'"],
 
-        # Trust fonts from Google.
         "font-src": ["'self'", "https://fonts.gstatic.com"],
 
-        # Trust images from your local system and Cloudinary.
         "img-src": ["'self'", "data:", "https://res.cloudinary.com"],
 
-        # The mobile PDF preview loads PDF.js from jsDelivr and runs its
-        # worker, which is fetched cross-origin and spawned from a blob: URL.
         "worker-src": ["'self'", "blob:", "https://cdn.jsdelivr.net"],
 
-        # The desktop PDF preview fetches the file through the same-origin
-        # preview proxy; PDF.js also fetches its worker script from jsDelivr.
         "connect-src": ["'self'", "https://cdn.jsdelivr.net"],
 
-        # The desktop preview points the <iframe> at an in-memory blob: URL.
         "frame-src": ["'self'", "blob:"],
 
-        # Lock down clickjacking protection completely.
         "frame-ancestors": ["'self'"],
     },
 }
 
 
-# Reject large uploads before they reach the view layer.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024

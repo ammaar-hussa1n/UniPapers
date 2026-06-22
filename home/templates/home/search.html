@@ -285,7 +285,6 @@
         font-size:14px;
     }
 
-    /* Placeholder is laid out but hidden until we detect a touch device. */
     .thumbnail-pdf-fallback{
         display:none;
         flex-direction:column;
@@ -301,8 +300,6 @@
         letter-spacing:0.08em;
     }
 
-    /* Touch browsers render a blank iframe for PDFs; show the placeholder instead.
-       Primary path: class set by JS in base.html (also covers mobile user agents). */
     .is-touch-device .pdf-thumbnail iframe.thumbnail-preview-media{
         display:none;
     }
@@ -311,7 +308,6 @@
         display:flex;
     }
 
-    /* No-JS safety net for genuine touch hardware. */
     @media (hover: none) and (pointer: coarse){
         .pdf-thumbnail iframe.thumbnail-preview-media{
             display:none;
@@ -495,7 +491,6 @@
     }
 
     @media(max-width:900px){
-        /* Keep your existing PDF Card styles */
         .container{
             width:94%;
         }
@@ -518,23 +513,21 @@
             padding-top:0;
         }
 
-        /* --- Full-width dropdown panel (anchored to the bar, not the button) --- */
         .filter-bar {
-            position: relative; /* Menus anchor to the whole bar */
-            gap: 14px; /* Matches your desktop gap */
-            justify-content: flex-start; /* Keeps buttons left-aligned naturally */
+            position: relative;
+            gap: 14px;
+            justify-content: flex-start;
         }
 
         .filter-dropdown {
-            position: static; /* Menu no longer anchors to the individual button */
+            position: static;
         }
 
         .filter-dropdown::after {
-            display: none; /* Hover-bridge would otherwise span the whole bar */
+            display: none;
         }
 
         .filter-menu {
-            /* Drops as a full-width panel under the filter row, so it can't overflow */
             left: 0;
             right: 0;
             top: 100%;
