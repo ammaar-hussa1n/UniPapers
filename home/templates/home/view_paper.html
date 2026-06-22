@@ -867,11 +867,13 @@
                     <div class="paper-frame">
                         {% if is_pdf %}  <iframe
                             id="pdfRenderer"
-                            src="{{ record.file.url }}" class="pdf-embed"
+                            class="pdf-embed"
                             title="{{ record.title }}"
-                            loading="lazy"
                             style="width: 100%; height: 600px; border: none;"
                         ></iframe>
+                        {# No initial src: the desktop script fetches the PDF once via the
+                           preview proxy and sets this iframe to that blob, avoiding a second
+                           direct-from-Cloudinary download. #}
                         <!-- Mobile browsers can't render PDFs inside an iframe, so on touch
                              devices we render the pages to canvas with PDF.js instead. Hidden
                              by default; the script below shows it only on mobile. -->
@@ -1149,10 +1151,9 @@
     }
 
     async function renderPdfMobile() {
-        // Swap the (blank-on-mobile) iframe for the canvas-based renderer.
-        // Drop its src too so the raw PDF isn't fetched twice on mobile data.
+        // The iframe has no src until the desktop path sets one (never on mobile),
+        // so just hide it and render to canvas instead.
         if (pdfRenderer) {
-            pdfRenderer.removeAttribute('src');
             pdfRenderer.style.display = 'none';
         }
         pdfMobileRenderer.style.display = 'grid';
