@@ -445,18 +445,22 @@
         }
 
         .footer-link {
+            display: inline-block;
             font-size: 14px;
             font-weight: 600;
-            color: #1e293b;
+            color: #168a45;
             text-decoration: none;
-            padding: 8px 16px;
+            padding: 8px 22px;
             border-radius: 6px;
-            transition: background 0.2s;
+            border: 1.5px solid #168a45;
+            background: #ffffff;
+            line-height: 1.4;
+            transition: background 0.2s, color 0.2s;
         }
 
         .footer-link:hover {
-            background: #e6f7ed;
-            color: #168a45;
+            background: #168a45;
+            color: #ffffff;
         }
 
         .copyright-text {
@@ -618,7 +622,7 @@
     <div class="nav-left">
         <a href="{% url 'home' %}" class="navbar-brand">
             <img src="{% static 'logo.png' %}" alt="Logo" class="nav-logo">
-            <span class="brand-text">UNI PAPERS</span>
+            <span class="brand-text">UNIPAPERS</span>
         </a>
     </div>
 
@@ -727,7 +731,7 @@
     {% endif %}
 
     <div class="nav-right">
-        <span class="copyright-text">By using the website you agree to our <a href="{% url 'terms_and_conditions' %}">Terms & Conditions</a> and <a href="{% url 'privacy_policy' %}">Privacy Policy</a></span>
+        <span class="copyright-text">By using the website you agree to our <a href="{% url 'terms_and_conditions' %}">T&C</a> and <a href="{% url 'privacy_policy' %}">PP</a></span>
     </div>
 </footer>
 
