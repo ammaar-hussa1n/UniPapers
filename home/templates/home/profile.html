@@ -21,6 +21,7 @@
     .profile-avatar-large {
         width: 100px;
         height: 100px;
+        flex-shrink: 0; /* Keep a perfect circle; don't let it squish on narrow screens */
         border-radius: 50%;
         background: #168a45;
         color: white;
@@ -435,6 +436,39 @@
         .pdf-thumbnail{
             width:100%;
             height:220px;
+        }
+    }
+
+    /* Keep the profile header tidy on phones: let the text column shrink and wrap
+       instead of overflowing the screen. Desktop layout stays unchanged. */
+    @media (max-width: 768px) {
+        .profile-header {
+            padding: 36px 0;
+            margin-bottom: 28px;
+        }
+
+        .profile-info-card {
+            padding: 0 16px;
+            gap: 18px;
+        }
+
+        .profile-avatar-large {
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
+        }
+
+        .user-details {
+            min-width: 0; /* Allow the flex column to shrink below its content width */
+        }
+
+        .user-details h1 {
+            font-size: 22px;
+            overflow-wrap: anywhere; /* Wrap long usernames instead of overflowing */
+        }
+
+        .user-details p {
+            overflow-wrap: anywhere; /* Wrap long emails too */
         }
     }
     .pdf-title a{

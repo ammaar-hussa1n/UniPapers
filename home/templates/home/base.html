@@ -529,7 +529,20 @@
             }
 
             .nav-left {
-                gap: 12px;
+                gap: 10px;
+                flex: 1 1 0;       /* Shrink to fit leftover space so actions stay on the same row */
+                min-width: 0;
+            }
+
+            .navbar-brand {
+                min-width: 0;      /* Allow the brand to shrink instead of forcing a wrap */
+            }
+
+            .brand-text {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis; /* Safety net on very narrow phones */
+                min-width: 0;
             }
 
             /* Push Search row to fill 100% full width directly underneath brand elements */
@@ -716,7 +729,6 @@
     {% endif %}
 
     <div class="nav-right">
-        <span class="contact-label">© 2026 UniPapers</span>
         <span class="copyright-text">By using the website you agree to our <a href="{% url 'terms_and_conditions' %}">Terms & Conditions</a> and <a href="{% url 'privacy_policy' %}">Privacy Policy</a></span>
     </div>
 </footer>

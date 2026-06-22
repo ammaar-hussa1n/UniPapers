@@ -162,6 +162,28 @@
     .strip-email:hover {
         color: #168a45;
     }
+
+    /* Keep the contact strip inside the screen on phones and let the email wrap.
+       Desktop layout stays unchanged. */
+    @media (max-width: 768px) {
+        .contact-strip {
+            width: auto;            /* Stop sizing to content so it can't exceed the screen */
+            max-width: 100%;
+            gap: 12px;
+            padding: 15px 18px;
+            margin: 30px auto;
+        }
+
+        .contact-strip-content {
+            flex-wrap: wrap;        /* Drop the email to its own line if needed */
+            justify-content: center;
+            min-width: 0;
+        }
+
+        .strip-email {
+            overflow-wrap: anywhere; /* Break the long email instead of overflowing */
+        }
+    }
 </style>
 
 <div class="about-container">

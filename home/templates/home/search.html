@@ -481,29 +481,31 @@
             padding-top:0;
         }
 
-        /* --- Targeted Dropdown Centering --- */
+        /* --- Full-width dropdown panel (anchored to the bar, not the button) --- */
         .filter-bar {
+            position: relative; /* Menus anchor to the whole bar */
             gap: 14px; /* Matches your desktop gap */
             justify-content: flex-start; /* Keeps buttons left-aligned naturally */
         }
 
-        .filter-menu {
-            /* Fallback default for the other dropdowns */
-            left: 0;
-            transform: none;
-            width: calc(100vw - 32px); 
-            max-width: 290px; 
-            padding: 14px;
+        .filter-dropdown {
+            position: static; /* Menu no longer anchors to the individual button */
         }
 
-        /* Target ONLY Semester (2nd dropdown) and Year (last dropdown) menus to center */
-        .filter-dropdown:nth-of-type(2) .filter-menu,
-        .filter-dropdown:last-of-type .filter-menu {
-            left: 50%;
-            right: auto;
-            transform: translateX(-50%);
-            width: 85vw; /* Fluid scaling so it stays clean on small screens */
-            max-width: 280px;
+        .filter-dropdown::after {
+            display: none; /* Hover-bridge would otherwise span the whole bar */
+        }
+
+        .filter-menu {
+            /* Drops as a full-width panel under the filter row, so it can't overflow */
+            left: 0;
+            right: 0;
+            top: 100%;
+            width: auto;
+            max-width: none;
+            transform: none;
+            margin-top: 8px;
+            padding: 14px;
         }
 
         .filter-menu-list.compact-grid,
@@ -738,7 +740,7 @@
                             </div>
 
                             <div class="pdf-upload">
-                                Uploaded for <span>{{ record.course.term }}</span> | File: {{ record.file_basename|default:'Not available' }}
+                                Uploaded for <span>{{ record.course.term }}</span>
                             </div>
                         </div>
                     </div>
