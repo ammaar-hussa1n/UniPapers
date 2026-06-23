@@ -1,3 +1,13 @@
+AVAILABLE_UNIVERSITIES = {
+    'Sir Syed University': {'label': 'SSUET', 'value': 'Sir Syed University'},
+    'FAST University': {'label': 'FAST', 'value': 'FAST University'},
+}
+
+AVAILABLE_PROGRAMS = {
+    'Sir Syed University': ['Computer Science', 'Software Engineering'],
+    'FAST University': ['Software Engineering'],
+}
+
 AVAILABLE_COURSES = {
     'Sir Syed University': {
         'Computer Science|1st Semester': [
@@ -44,10 +54,57 @@ AVAILABLE_COURSES = {
             'Design & Analysis of Algorithms (DAA)',
             'Numerical Analysis',
         ],
-        'Computer Science|7th Semester': ['Economics and Management'],
+        'Computer Science|7th Semester': [
+            'Economics and Management'
+        ],
         'Computer Science|8th Semester': [
             'Parallel & Distributed Computing (PDC)',
             'Entrepreneurship',
+        ],
+        'Software Engineering|1st Semester': [
+            'Linear Algebra (LA)',
+            'Introduction to Computing',
+            'Islamic Studies',
+            'Programming Fundamentals (PF)',
+            'Introduction to Calculus',
+            'Functional English'
+        ],
+        'Software Engineering|2nd Semester': [
+            'Object Oriented Programming (OOP)',
+            'Pakistan Studies & Aligarh Movement',
+            'Calculus & Analytical Geometry',
+            'Applied Physics (AP)',
+            'Introduction to Software Engineering (SE)'
+        ],
+        'Software Engineering|3rd Semester': [
+            'Discrete Mathematics',
+            'Communication Skills',
+            'Software Requirement Engineering (SRE)',
+            'Data Structures and Algorithms (DSA)'
+        ],
+        'Software Engineering|4th Semester': [
+            'Software Design and Architecture (SDA)',
+            'Introduction to Database Systems (DBMS)',
+            'Operating Systems (OS)',
+            'Probability and Statistics',
+            'Technical Writing'
+        ],
+        'Software Engineering|5th Semester': [
+            'Computer Communication and Networks (CCN)',
+            'Software Construction and Development (SCD)',
+            'Human Computer Interaction (HCI)'
+        ],
+        'Software Engineering|6th Semester': [
+            'Web Engineering',
+            'Information Security',
+            'Software Quality Engineering (SQE)'
+        ],
+        'Software Engineering|7th Semester': [
+            'Software Re-Engineering (SRE)',
+            'Software Project Management (SPM)'
+        ],
+        'Software Engineering|8th Semester': [
+            'Computing Professional Practices (CPP)'
         ],
     },
     'FAST University': {
@@ -102,12 +159,4 @@ AVAILABLE_COURSES = {
             'Professional Practices in IT',
         ],
     },
-}
-AVAILABLE_PROGRAMS = {
-    'Sir Syed University': ['Computer Science'],
-    'FAST University': ['Software Engineering'],
-}
-AVAILABLE_UNIVERSITIES = {
-    'Sir Syed University': {'label': 'SSUET', 'value': 'Sir Syed University'},
-    'FAST University': {'label': 'FAST', 'value': 'FAST University'},
 }
